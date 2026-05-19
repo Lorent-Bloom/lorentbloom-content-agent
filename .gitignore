@@ -1,0 +1,15 @@
+# Secrets — never commit
+.env
+.env.local
+.env.*.local
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Local-only Docker Compose overrides
+docker-compose.override.yml

@@ -1,0 +1,29 @@
+name: rently-content-agent
+
+# n8n self-hosted, single-service stack.
+# Uses n8n's built-in SQLite for state (workflows, credentials, executions).
+# The DB lives inside the n8n_data volume — back it up with the volume.
+#
+# Same file works for local and prod. Environment-specific values live in .env.
+# For local, n8n binds to 127.0.0.1 only (not reachable from the network).
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n_app
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5678:5678"
+    environment:
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_HOST: ${N8N_HOST}
+      N8N_PORT: "5678"
+      N8N_PROTOCOL: ${N8N_PROTOCOL:-http}
+      WEBHOOK_URL: ${WEBHOOK_URL}
+      GENERIC_TIMEZONE: ${GENERIC_TIMEZONE:-UTC}
+      N8N_RUNNERS_ENABLED: "true"
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+volumes:
+  n8n_data:

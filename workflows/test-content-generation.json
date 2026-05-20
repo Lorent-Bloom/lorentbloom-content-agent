@@ -1,0 +1,328 @@
+{
+  "name": "test-content-generation",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "11111111-1111-1111-1111-111111111111",
+      "name": "When clicking Test workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [200, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Weighted random pick: 40% renter, 40% owner, 20% service.\n// Tweak weights here to change monthly distribution.\n\nconst weights = { renter: 0.4, owner: 0.4, service: 0.2 };\nconst r = Math.random();\n\nlet perspective;\nif (r < weights.renter) {\n  perspective = 'renter';\n} else if (r < weights.renter + weights.owner) {\n  perspective = 'owner';\n} else {\n  perspective = 'service';\n}\n\nreturn [{ json: { perspective } }];"
+      },
+      "id": "77777777-7777-7777-7777-777777777777",
+      "name": "Pick perspective",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 400]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.perspective }}",
+                    "rightValue": "renter",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "renter"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.perspective }}",
+                    "rightValue": "owner",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "owner"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.perspective }}",
+                    "rightValue": "service",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "service"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "88888888-8888-8888-8888-888888888888",
+      "name": "Switch by perspective",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [620, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Renter perspective — 13 topics. Each has 3-6 curated hashtags;\n// Decode picks 2 at random per run for variety.\n\nconst topics = [\n  {\n    archetype: 'money-saving calculation',\n    description: 'перфоратор средней мощности, покупка ~3500 лей, аренда ~180 лей/день, для двух разовых задач (повесить полку, через год карниз для штор)',\n    city: 'Кишинёв',\n    imagePrompt: 'Young woman mounting a wooden floating shelf on a white wall using a cordless power drill, modern Scandinavian apartment, soft natural light, lifestyle photography',\n    hashtags: ['#перфоратор', '#инструменты', '#ремонт', '#ремонтКвартиры', '#DIY']\n  },\n  {\n    archetype: 'money-saving calculation',\n    description: 'мойка высокого давления для машины и террасы, покупка ~3000 лей, аренда ~200 лей/день, нужна весной и осенью',\n    city: 'Кагул',\n    imagePrompt: 'Man washing a dark car with a pressure washer in a residential driveway, water spray catching sunlight, sunny spring day, lifestyle photography',\n    hashtags: ['#мойкаВД', '#автомойка', '#уборка', '#автоуход', '#дача']\n  },\n  {\n    archetype: 'listing spotlight',\n    description: 'профессиональная камера Sony A7 IV сдаётся в аренду за 350 лей/день, подходит для выпускных, свадеб, больших поездок',\n    city: 'Кишинёв',\n    imagePrompt: 'A professional mirrorless camera resting on an open notebook next to a coffee cup, soft window light streaming in, minimalist composition, lifestyle photography',\n    hashtags: ['#камера', '#фотограф', '#фототехника', '#свадьба', '#выпускной', '#путешествие']\n  },\n  {\n    archetype: 'listing spotlight',\n    description: 'квадрокоптер DJI с камерой 4K, аренда ~400 лей/день, для свадеб, съёмки недвижимости, путешествий',\n    city: 'Кишинёв',\n    imagePrompt: 'A small drone hovering low over rolling vineyard hills at golden hour, soft warm sunlight, cinematic landscape photography',\n    hashtags: ['#дрон', '#квадрокоптер', '#аэросъёмка', '#свадебнаяСъёмка', '#фотограф']\n  },\n  {\n    archetype: 'seasonal / topical',\n    description: 'двухместная палатка для походов в горы, покупка ~2200 лей, аренда ~120 лей/день, лето — сезон выходных в горах и фестивалей',\n    city: 'Кишинёв',\n    imagePrompt: 'A small yellow camping tent pitched on a grassy hillside overlooking forested mountains, golden hour summer light, lifestyle outdoor photography',\n    hashtags: ['#палатка', '#туризм', '#поход', '#лето', '#природа', '#кемпинг']\n  },\n  {\n    archetype: 'seasonal / topical',\n    description: 'надувная байдарка для двоих, аренда ~150 лей/день, для летнего сплава по Днестру или озёрам Молдовы',\n    city: 'Кишинёв',\n    imagePrompt: 'Two people paddling a yellow inflatable kayak on a calm river surrounded by green forest, peaceful summer day, lifestyle outdoor photography',\n    hashtags: ['#байдарка', '#сплав', '#Днестр', '#природа', '#активныйОтдых']\n  },\n  {\n    archetype: 'listing spotlight',\n    description: 'горный велосипед хорошего бренда, аренда ~80-150 лей/день, для уикенда в Резервации Кодры или Старом Орхее',\n    city: 'Кишинёв',\n    imagePrompt: 'Mountain bike leaning against a tree on a forest trail covered in autumn leaves, soft sunlight through the canopy, lifestyle outdoor photography',\n    hashtags: ['#горныйВелосипед', '#велосипед', '#спорт', '#Кодры', '#активныйОтдых']\n  },\n  {\n    archetype: 'seasonal / topical',\n    description: 'горнолыжный комплект (лыжи + ботинки), аренда ~150 лей/день, для одной поездки в Карпаты зимой — нет смысла покупать за 5000+ лей',\n    city: 'Кишинёв',\n    imagePrompt: 'Pair of skis and ski boots leaning against a wooden mountain cabin wall, fresh snow on the ground, golden afternoon winter light, lifestyle photography',\n    hashtags: ['#горныеЛыжи', '#лыжи', '#зима', '#Карпаты', '#спорт']\n  },\n  {\n    archetype: 'seasonal / topical',\n    description: 'мощная Bluetooth-колонка JBL для вечеринок и пикников, аренда ~80 лей/день, летом — сезон выходных на природе',\n    city: 'Кишинёв',\n    imagePrompt: 'Small bluetooth speaker on a picnic blanket spread in a sunny park, friends relaxing softly blurred in the background, lifestyle photography',\n    hashtags: ['#колонка', '#вечеринка', '#пикник', '#музыка', '#JBL']\n  },\n  {\n    archetype: 'seasonal / topical',\n    description: 'караоке-система для дня рождения или новогодней вечеринки, аренда ~200 лей/день; покупка такой ~3000 лей и пылится 11 месяцев в году',\n    city: 'Орхей',\n    imagePrompt: 'Microphone and small speaker on a coffee table in a living room with festive string lights, warm evening atmosphere, lifestyle photography',\n    hashtags: ['#караоке', '#вечеринка', '#деньРождения', '#праздник']\n  },\n  {\n    archetype: 'listing spotlight',\n    description: 'вечернее платье для одного мероприятия (свадьба, выпускной), аренда ~200-400 лей/день, покупка такого ~1500-3000 лей',\n    city: 'Кишинёв',\n    imagePrompt: 'Elegant long evening dress hanging on a wooden hanger by a window, soft natural light, minimalist bedroom, fashion lifestyle photography',\n    hashtags: ['#вечернееПлатье', '#платье', '#свадьба', '#выпускной', '#мода']\n  },\n  {\n    archetype: 'money-saving calculation',\n    description: 'домашний проектор, покупка ~5000 лей, аренда ~250 лей/день, для домашнего киновечера или презентации раз в пару месяцев',\n    city: 'Бельцы',\n    imagePrompt: 'Family of three watching a movie projected on a living room wall, dim warm lighting, popcorn on the coffee table, cozy evening, lifestyle photography',\n    hashtags: ['#проектор', '#киновечер', '#домашнееКино', '#презентация']\n  },\n  {\n    archetype: 'money-saving calculation',\n    description: 'мультиварка-скороварка, покупка ~2000 лей, аренда ~100 лей/день, нужна на праздничный ужин для большой компании',\n    city: 'Бельцы',\n    imagePrompt: 'Modern pressure cooker on a kitchen counter next to fresh vegetables and herbs, bright daylight kitchen, lifestyle photography',\n    hashtags: ['#мультиварка', '#скороварка', '#готовка', '#праздничныйУжин', '#кухня']\n  }\n];\n\nconst topic = topics[Math.floor(Math.random() * topics.length)];\n\nreturn [{\n  json: {\n    perspective: 'renter',\n    selectedTopic: topic\n  }\n}];"
+      },
+      "id": "99999999-9999-9999-9999-999999999999",
+      "name": "Renter pool",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [840, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Owner perspective — 10 topics. Each has curated hashtags.\n\nconst topics = [\n  {\n    archetype: 'most-rented list',\n    description: 'какие 5 типов вещей чаще всего лежат у людей без дела дома и могут приносить деньги при сдаче в аренду',\n    city: 'Кишинёв',\n    imagePrompt: 'Tidy home storage shelf with a folded tent, a drill, a camera, an evening dress and a childrens scooter neatly arranged, soft daylight, minimalist composition, lifestyle photography',\n    hashtags: ['#заработок', '#вещи', '#пассивныйДоход', '#совместноеПотребление']\n  },\n  {\n    archetype: 'earning potential',\n    description: 'детский самокат или беговел, из которого ребёнок вырос — может приносить 80-150 лей в день вместо того чтобы пылиться',\n    city: 'Кишинёв',\n    imagePrompt: 'A childs blue scooter parked in the corner of a tidy hallway near a front door, soft afternoon light, lifestyle photography',\n    hashtags: ['#детскийСамокат', '#дети', '#беговел', '#ребёнок']\n  },\n  {\n    archetype: 'earning potential',\n    description: 'детское автокресло, из которого ребёнок вырос (но в хорошем состоянии) — приносит 50-100 лей в день; родителям-туристам в Кишинёве часто нужно на пару дней',\n    city: 'Кишинёв',\n    imagePrompt: 'A child safety car seat installed in the back seat of a parked car, sunlight streaming through the window, clean interior, lifestyle photography',\n    hashtags: ['#детскоеАвтокресло', '#дети', '#родители', '#путешествия']\n  },\n  {\n    archetype: 'earning potential',\n    description: 'швейная машинка, которой давно не пользовались — может приносить 80-150 лей в день; часто нужна для подгонки платья или подшивки штор',\n    city: 'Кишинёв',\n    imagePrompt: 'Vintage style sewing machine on a wooden table with neatly folded fabric and scissors, soft natural light through window, lifestyle photography',\n    hashtags: ['#швейнаяМашинка', '#рукоделие', '#ателье', '#заработок']\n  },\n  {\n    archetype: 'earning potential',\n    description: 'фотозона с фоном и реквизитом для дня рождения или корпоратива — то, что у фотографов часто простаивает между съёмками; может приносить 150-300 лей в день',\n    city: 'Кишинёв',\n    imagePrompt: 'A decorated photo backdrop with paper flowers and pastel balloons in a bright event venue, soft evening light, lifestyle photography',\n    hashtags: ['#фотозона', '#праздник', '#свадьба', '#декор', '#фотограф']\n  },\n  {\n    archetype: 'earning potential',\n    description: 'портативная электростанция 1000+ Вт, лежащая после одной поездки — может приносить ~200 лей/день, в кемпинговый сезон спрос высокий',\n    city: 'Бельцы',\n    imagePrompt: 'A portable power station sitting on a wooden camping table with phones charging from it, forest background, soft evening light, lifestyle photography',\n    hashtags: ['#электростанция', '#кемпинг', '#природа', '#туризм']\n  },\n  {\n    archetype: 'earning potential',\n    description: 'вечернее или свадебное платье, надетое один раз и оставленное в шкафу — может приносить 300-400 лей за каждый день аренды; спрос на одно мероприятие большой',\n    city: 'Кишинёв',\n    imagePrompt: 'An elegant white wedding dress hanging in a softly lit closet, mirror reflection visible, lifestyle fashion photography',\n    hashtags: ['#свадебноеПлатье', '#свадьба', '#невеста', '#мода']\n  },\n  {\n    archetype: 'earning potential',\n    description: 'набор фотообъективов, купленный когда-то для одного проекта и теперь пылящийся в ящике — может приносить от 100 до 300 лей в день',\n    city: 'Кишинёв',\n    imagePrompt: 'Several camera lenses arranged neatly on a wooden desk next to an open camera bag, soft natural light, lifestyle photography',\n    hashtags: ['#фотообъективы', '#камера', '#фотограф', '#фототехника']\n  },\n  {\n    archetype: 'stuff in garage',\n    description: 'вещи в гараже или кладовке — дрель, палатка, чемодан для путешествий, праздничные гирлянды — простой обзор того, что можно превратить в доход',\n    city: 'Кишинёв',\n    imagePrompt: 'A tidy garage corner with neatly stored items — a folded tent, a power drill, a travel suitcase, festive lights — soft daylight through a small window, minimalist composition, lifestyle photography',\n    hashtags: ['#гараж', '#вещи', '#кладовка', '#пассивныйДоход']\n  },\n  {\n    archetype: 'most-rented list',\n    description: 'что в Кишинёве сейчас арендуют чаще всего — обзор категорий, где спрос превышает предложение, чтобы владельцы понимали куда смотреть',\n    city: 'Кишинёв',\n    imagePrompt: 'A cozy living room with various items on a coffee table — a camera, a drill, a folded dress and a tablet — afternoon light, minimalist composition, lifestyle photography',\n    hashtags: ['#спрос', '#каталог', '#заработок', '#вещиВАренду']\n  }\n];\n\nconst topic = topics[Math.floor(Math.random() * topics.length)];\n\nreturn [{\n  json: {\n    perspective: 'owner',\n    selectedTopic: topic\n  }\n}];"
+      },
+      "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      "name": "Owner pool",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [840, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Service perspective — 6 topics. STRICT: feature-whitelisted, no fabrication.\n\nconst topics = [\n  {\n    archetype: 'trust: digital contract',\n    description: 'цифровой договор перед каждой арендой — что в нём фиксируется, почему это важно когда передаёшь свою вещь незнакомому человеку',\n    city: 'Молдова',\n    imagePrompt: 'Two hands meeting over a tablet showing a digital contract, clean modern office or cafe setting, soft natural light, lifestyle business photography',\n    hashtags: ['#безопасность', '#цифровойДоговор', '#доверие']\n  },\n  {\n    archetype: 'trust: IDNP verification',\n    description: 'проверка пользователей через IDNP — как Lorent Bloom убеждается, что Вы передаёте вещь реальному человеку, а не анонимному аккаунту',\n    city: 'Молдова',\n    imagePrompt: 'Close-up of a smartphone screen showing an identity verification interface, soft window light, modern minimalist composition, lifestyle photography',\n    hashtags: ['#безопасность', '#IDNP', '#проверкаПользователей', '#доверие']\n  },\n  {\n    archetype: 'mission',\n    description: 'почему мы создали Lorent Bloom — идея в том, что вещи в наших домах должны работать, а не пылиться; платформа возвращает разрыв между покупкой и реальной потребностью',\n    city: 'Молдова',\n    imagePrompt: 'A bright cozy home interior with various rarely-used items on a shelf — a camera, a tent in its bag, a guitar — soft warm light, lifestyle photography',\n    hashtags: ['#разумноеПотребление', '#экология', '#совместноеПотребление', '#sharing']\n  },\n  {\n    archetype: 'category breadth',\n    description: 'в каталоге Lorent Bloom более 50 категорий — от инструментов и фототехники до палаток, музыкальных инструментов и одежды для особых случаев; обзор того, что вообще можно найти',\n    city: 'Молдова',\n    imagePrompt: 'A flat-lay composition of diverse rental items on a wooden surface — drill, camera, tent fabric, evening dress, guitar, espresso cup — soft natural light, lifestyle photography',\n    hashtags: ['#каталог', '#50категорий', '#разнообразие', '#вещиВАренду']\n  },\n  {\n    archetype: 'local presence',\n    description: 'Lorent Bloom работает по всей Молдове — Кишинёв, Бельцы, Кагул, Тирасполь, Комрат; цифровой договор и проверка владельца действуют одинаково в каждом городе',\n    city: 'Молдова',\n    imagePrompt: 'A subtle map-inspired background with soft Moldovan landscape — vineyards and rolling hills at golden hour, atmospheric lifestyle photography',\n    hashtags: ['#всяМолдова', '#Кишинёв', '#Бельцы', '#Кагул', '#Тирасполь', '#Орхей']\n  },\n  {\n    archetype: 'service perks',\n    description: 'что Вы получаете в Lorent Bloom помимо самой аренды: бесплатная первая доставка, чат в приложении с владельцем, поддержка 24/7 если что-то пошло не так',\n    city: 'Молдова',\n    imagePrompt: 'A courier handing a small package to a smiling customer at a residential doorway, soft natural light, lifestyle photography',\n    hashtags: ['#доставка', '#поддержка', '#чат', '#удобство']\n  }\n];\n\nconst topic = topics[Math.floor(Math.random() * topics.length)];\n\nreturn [{\n  json: {\n    perspective: 'service',\n    selectedTopic: topic\n  }\n}];"
+      },
+      "id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+      "name": "Service pool",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [840, 600]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build prompts — embeds the brand-voice system prompt and assembles\n// the Groq request body based on the picked topic + perspective.\n//\n// IMPORTANT: keep the systemPrompt below in sync with prompts/brand-voice.md\n// (eventually n8n should read the file directly; for now manually synced).\n\nconst perspective = $input.first().json.perspective;\nconst topic = $input.first().json.selectedTopic;\n\nconst systemPrompt = `You are the content voice for Lorent Bloom (lorentbloom.com), a Moldova-based peer-to-peer rental marketplace. People in Chișinău, Bălți, Cahul, Tiraspol, Comrat and other Moldovan cities use it both to rent items they need short-term (cameras, tools, camping gear, special-occasion clothing) AND to earn money from items they own but rarely use.\n\n# POST PERSPECTIVES\n\nEvery post falls into one of three perspectives. The user prompt tells you which one you're writing for.\n\n- Renter perspective: aimed at people who need to use something short-term. 'You can rent this for X лей instead of buying for Y лей.' Lead with the renter's need or with a specific item + price.\n- Owner perspective: aimed at people whose stuff is sitting unused. 'If you have X at home, it can earn Z лей per day.' Lead with the idle item the reader might own.\n- Service perspective: about Lorent Bloom itself — trust, mission, perks, categories, local presence. Lead with what's genuinely true about the platform. Stay within the FEATURE WHITELIST below.\n\n# MANDATORY RULES (deviating breaks the brand)\n\n1. First sentence MUST name a specific item with a real MDL price or a Moldovan city. Never open with abstract phrasing like 'часто возникает необходимость', 'многие сталкиваются с', 'обычно'.\n2. 'Вы' must always start with a capital letter В then lowercase ы. Lowercase 'вы' is wrong. ALL-CAPS 'ВЫ' is also wrong. In Romanian use 'Dvs.' or 'Dumneavoastră'. Never 'ты' / 'tu'.\n3. The brand name 'Lorent Bloom' MUST appear in the post body — written exactly as 'Lorent Bloom', not transliterated. Don't say 'наша платформа', 'наш сервис' — say 'Lorent Bloom' or 'каталог Lorent Bloom'.\n4. City spelling matches the post language. Russian posts: 'Кишинёв', 'Бельцы', 'Кагул', 'Тирасполь', 'Комрат'. Never mix scripts inside one post.\n5. End with a short observation that lands — not a generic save-money CTA. Don't copy verbatim from the examples below; write your own.\n6. Use real MDL prices ('3 500 лей', '150 лей в день'). No vague qualifiers.\n7. No emojis of any kind. Plain text only.\n8. Length: 80–150 words.\n9. Grammar must be correct Russian. Watch case agreement, subject-verb agreement, verb aspect.\n\n# FEATURE WHITELIST (especially for Service posts)\n\nWhen writing about Lorent Bloom as a service, you may ONLY claim these features. Do NOT invent anything else:\n\n- P2P rental of physical items\n- 50+ categories\n- Digital contract per rental\n- Verified users (IDNP)\n- In-app chat\n- 24/7 support\n- Free first delivery\n- Operating in: Кишинёв, Бельцы, Кагул, Тирасполь, Комрат\n- Currency: MDL (Moldovan Leu)\n\n# BANNED CONTENT (all perspectives)\n\nNEVER include these:\n- Invented user counts ('тысячи пользователей', 'X людей доверяют нам')\n- Invented transaction stats ('Y аренд в месяц', 'Z сделок завершено')\n- Fictional testimonials ('Мария из Кишинёва сказала...')\n- Superlatives without proof ('самый безопасный', 'лучший в Молдове', 'самый быстрый')\n- Insurance or replacement guarantees (not a real feature)\n- Vague volume claims ('тысячи людей', 'часто арендуют', 'все больше людей')\n- Functional walkthroughs ('зарегистрируйтесь за 5 шагов', 'нажмите кнопку')\n\nIf you cannot say something concretely true and on the whitelist, do not say it.\n\n# FORBIDDEN PHRASES (generic AI marketing tells)\n\n- 'С помощью нашей платформы' → use 'В Lorent Bloom' or 'В каталоге Lorent Bloom'\n- 'часто возникает необходимость', 'многие сталкиваются с'\n- 'Это разумное решение для тех, кто...'\n- 'Это поможет Вам сэкономить'\n- 'успейте', 'не упустите', 'ограниченное предложение'\n- ALL CAPS, clickbait headlines, hashtags inside the body\n\n# EXAMPLES (study for tone — do NOT copy phrases verbatim)\n\nGOOD opener: 'Перфоратор средней мощности в магазине Кишинёва — около 3 500 лей.'\nBAD opener: 'В Кишинёве часто возникает необходимость использования перфоратора.'\n\nGOOD closing patterns (write your OWN in this spirit):\n  - 'Покупают вещи на годы. Используют — на часы.'\n  - 'Аренда возвращает разрыв в пользу кошелька.'\nBAD closing: 'Это разумное решение для всех, кто хочет сэкономить.'\n\n# VOICE TEXTURE\n\n- Lead with a concrete object, not the benefit.\n- Problem first, solution second.\n- Hold both sides of the marketplace when natural (renters + owners).\n- 'Smart and rational' positioning, not 'bargain hunter'.\n- Trust through specifics, not adjectives. Don't invent features.\n\n# OUTPUT FORMAT\n\nReturn only the post text. No commentary, no headlines, no labels, no 'Here is the post:'. Just the post. Paragraph breaks via blank lines are fine. Keep under 900 characters.`;\n\nconst userPrompt = `Perspective: ${perspective}\nArchetype: ${topic.archetype}\nTopic: ${topic.description}\nLanguage: Russian\nCity to reference: ${topic.city}\n\nWrite ONE post in the ${perspective} perspective, following all mandatory rules and the feature whitelist. Vary the structure from previous outputs — do not reuse phrases from the example posts verbatim.\n\nIf the topic mentions multiple items (e.g. \"drill, tent, suitcase\"), pick ONE and stay with it for the entire post — do not jump between items mid-post.`;\n\nreturn [{\n  json: {\n    perspective,\n    selectedTopic: topic,\n    requestBody: {\n      model: 'llama-3.3-70b-versatile',\n      temperature: 1.0,\n      messages: [\n        { role: 'system', content: systemPrompt },\n        { role: 'user', content: userPrompt }\n      ]\n    }\n  }\n}];"
+      },
+      "id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+      "name": "Build prompts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1060, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.requestBody) }}",
+        "options": {}
+      },
+      "id": "22222222-2222-2222-2222-222222222222",
+      "name": "Groq chat completion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1280, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Deterministic post-processing: runs brand-voice checks and either\n// passes the post through or prepares a regen request body with audit feedback.\n//\n// Outputs:\n//   { choices, _validate: { passed, issues, regenRequestBody | null } }\n//\n// The IF node downstream branches on _validate.passed.\n\nconst content = $input.first().json.choices[0].message.content;\nconst requestBody = $('Build prompts').first().json.requestBody;\nconst perspective = $('Build prompts').first().json.perspective;\n\nconst issues = [];\n\n// 1. Brand name must appear\nif (!content.includes('Lorent Bloom')) {\n  issues.push('Brand name \"Lorent Bloom\" missing from the post — it must appear in the body, exactly as \"Lorent Bloom\" (not transliterated).');\n}\n\n// 2. Lowercase \"вы\" detection (formal address must be capital Вы)\nconst lowerVyPattern = /(^|[\\s,.;:!?\\-—«\"])вы(\\s|[,.;:!?\\-—»\"])/;\nif (lowerVyPattern.test(content)) {\n  issues.push('Lowercase \"вы\" detected — formal address must always be capitalized \"Вы\" (capital В then lowercase ы).');\n}\n\n// 3. ALL-CAPS \"ВЫ\" detection (also wrong)\nif (/(^|[\\s,.;:!?\\-—«\"])ВЫ(\\s|[,.;:!?\\-—»\"])/.test(content)) {\n  issues.push('ALL-CAPS \"ВЫ\" detected — should be \"Вы\" (capital В then lowercase ы).');\n}\n\n// 4. Informal \"ты\" detection (Russian forbids \"ты\" in this brand)\nif (/(^|[\\s,.;:!?\\-—«\"])ты(\\s|[,.;:!?\\-—»\"])/i.test(content)) {\n  issues.push('Informal \"ты\" detected — brand voice requires formal \"Вы\" throughout, never \"ты\".');\n}\n\n// 5. Forbidden generic-AI phrases\nconst forbidden = [\n  { rx: /С помощью нашей платформы/i, name: '\"С помощью нашей платформы\" (use \"В Lorent Bloom\" instead)' },\n  { rx: /часто возникает необходимость/i, name: '\"часто возникает необходимость\" (open with a concrete fact instead)' },\n  { rx: /многие сталкиваются с/i, name: '\"многие сталкиваются с\"' },\n  { rx: /Это разумное решение для тех/i, name: '\"Это разумное решение для тех...\"' },\n  { rx: /Это поможет (Вам|вам) сэкономить/i, name: '\"Это поможет Вам сэкономить\"' },\n  { rx: /(^|\\s)успейте/i, name: '\"успейте\" (no urgency cliches)' },\n  { rx: /не упустите/i, name: '\"не упустите\"' },\n  { rx: /ограниченное предложение/i, name: '\"ограниченное предложение\"' },\n  { rx: /тысячи (пользователей|людей)/i, name: '\"тысячи пользователей/людей\" (no fabricated stats)' },\n  { rx: /самый безопасный/i, name: '\"самый безопасный\" (no unprovable superlatives)' },\n  { rx: /лучший в Молдове/i, name: '\"лучший в Молдове\" (no unprovable superlatives)' },\n  { rx: /наша платформа/i, name: '\"наша платформа\" (use \"Lorent Bloom\" instead)' },\n  { rx: /многие пользователи/i, name: '\"многие пользователи\" — implied user count without basis' },\n  { rx: /около \\d+\\s*лей в день/i, name: '\"около X лей в день\" — vague price, use a specific number tied to a real item' },\n  { rx: /безделушк[аи]/i, name: '\"безделушки\" — dismissive of real items; use \"вещи\" or specific item names' }\n];\nfor (const { rx, name } of forbidden) {\n  if (rx.test(content)) issues.push(`Forbidden phrase: ${name}`);\n}\n\n// 6. Length (80-150 target; tolerate 60-200)\nconst wordCount = content.trim().split(/\\s+/).filter(w => w.length > 0).length;\nif (wordCount < 60) issues.push(`Too short: ${wordCount} words (target 80-150, minimum 60).`);\nif (wordCount > 200) issues.push(`Too long: ${wordCount} words (target 80-150, max 200).`);\n\n// 7. Mixed scripts (Russian post should not contain Latin city names mid-text)\nconst latinCities = ['Chișinău', 'Bălți', 'Cahul', 'Tiraspol', 'Comrat'];\nfor (const lc of latinCities) {\n  if (content.includes(lc)) {\n    issues.push(`Mixed script: \"${lc}\" (Latin) in a Russian post — use Cyrillic equivalent.`);\n  }\n}\n\n// 8. Emoji detection\nconst emojiPattern = /[\\u{1F300}-\\u{1FAFF}\\u{2600}-\\u{27BF}\\u{1F000}-\\u{1F02F}\\u{1F0A0}-\\u{1F0FF}\\u{1F100}-\\u{1F1FF}\\u{1F200}-\\u{1F2FF}\\u{2700}-\\u{27BF}\\u{2B50}\\u{2B55}\\u{2705}\\u{274C}]/u;\nif (emojiPattern.test(content)) {\n  issues.push('Emoji detected — brand voice forbids ALL emojis (decorative or functional). Use plain text.');\n}\n\n// 9. CJK / foreign script characters (Llama token leak — '找到', '挂', etc.)\nconst cjkPattern = /[\\u4E00-\\u9FFF\\u3040-\\u30FF]/;\nif (cjkPattern.test(content)) {\n  issues.push('Foreign script characters (Chinese/Japanese) detected — Llama token leak. Regenerate with feedback to use only Cyrillic.');\n}\n\nconst passed = issues.length === 0;\nlet regenRequestBody = null;\n\nif (!passed) {\n  const fixInstruction = `The draft you just wrote has these brand-voice issues:\n\n${issues.map((iss, i) => `${i + 1}. ${iss}`).join('\\n')}\n\nRewrite the post fixing EVERY issue. Keep the same topic, perspective (${perspective}), and approximate length. Output ONLY the corrected post — no commentary, no labels, no \"Here is the corrected post:\".`;\n\n  regenRequestBody = {\n    ...requestBody,\n    messages: [\n      ...requestBody.messages,\n      { role: 'assistant', content },\n      { role: 'user', content: fixInstruction }\n    ]\n  };\n}\n\nreturn [{\n  json: {\n    choices: $input.first().json.choices,\n    _validate: {\n      passed,\n      issues,\n      wordCount,\n      regenRequestBody\n    }\n  }\n}];"
+      },
+      "id": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+      "name": "Validate output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1500, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json._validate.passed }}",
+              "rightValue": "={{ false }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+      "name": "Needs regeneration?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1720, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json._validate.regenRequestBody) }}",
+        "options": {}
+      },
+      "id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+      "name": "Regenerate with feedback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1940, 300]
+    },
+    {
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      },
+      "id": "12121212-1212-1212-1212-121212121212",
+      "name": "Merge text branches",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [2160, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cloudflare.com/client/v4/accounts/REPLACE_WITH_ACCOUNT_ID/ai/run/@cf/black-forest-labs/flux-1-schnell",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: $('Build prompts').item.json.selectedTopic.imagePrompt, num_steps: 8 }) }}",
+        "options": {}
+      },
+      "id": "55555555-5555-5555-5555-555555555555",
+      "name": "Cloudflare image generation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2380, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Convert Cloudflare's base64 image response into n8n binary data.\n// 2. Build the full Telegram caption: post text + URL + hashtags.\n//\n// Hashtag composition:\n//   ALWAYS: #LorentBloom, #АрендаМолдова\n//   PERSPECTIVE TAG: renter → #АрендуйВМолдове, owner → #СдайВАренду, service → (none)\n//   TOPIC TAGS: 2 picked at random from the topic's curated pool\n\nconst base64 = $input.first().json.result.image;\n\nif (!base64) {\n  throw new Error('Cloudflare AI returned no image. Full response: ' + JSON.stringify($input.first().json));\n}\n\n// Final text from whichever Groq branch produced it (original or regenerated).\nconst text = $('Merge text branches').first().json.choices[0].message.content;\nconst perspective = $('Build prompts').first().json.perspective;\nconst topic = $('Build prompts').first().json.selectedTopic;\n\n// ── Build hashtags ──\nconst hashtags = ['#LorentBloom', '#АрендаМолдова'];\n\n// Perspective-specific tag (action-oriented)\nif (perspective === 'renter') {\n  hashtags.push('#АрендуйВМолдове');\n} else if (perspective === 'owner') {\n  hashtags.push('#СдайВАренду');\n}\n// service: no perspective tag — covered by #LorentBloom + #АрендаМолдова\n\n// Pick 2 random topic-specific hashtags from the curated pool\nconst topicTags = topic.hashtags || [];\nconst shuffled = [...topicTags].sort(() => Math.random() - 0.5);\nconst randomPicks = shuffled.slice(0, Math.min(2, shuffled.length));\nhashtags.push(...randomPicks);\n\nconst captionText = text + '\\n\\nhttps://lorentbloom.com\\n\\n' + hashtags.join(' ');\n\nreturn [{\n  json: {\n    perspective,\n    topic,\n    captionText,\n    hashtagsUsed: hashtags\n  },\n  binary: {\n    image: {\n      data: base64,\n      mimeType: 'image/png',\n      fileName: 'generated.png'\n    }\n  }\n}];"
+      },
+      "id": "66666666-6666-6666-6666-666666666666",
+      "name": "Decode image to binary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2600, 400]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendPhoto",
+        "chatId": "REPLACE_WITH_YOUR_CHAT_ID",
+        "binaryData": true,
+        "binaryPropertyName": "image",
+        "additionalFields": {
+          "caption": "={{ $json.captionText }}",
+          "appendAttribution": false
+        }
+      },
+      "id": "33333333-3333-3333-3333-333333333333",
+      "name": "Send to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2820, 400]
+    }
+  ],
+  "connections": {
+    "When clicking Test workflow": {
+      "main": [[{"node": "Pick perspective", "type": "main", "index": 0}]]
+    },
+    "Pick perspective": {
+      "main": [[{"node": "Switch by perspective", "type": "main", "index": 0}]]
+    },
+    "Switch by perspective": {
+      "main": [
+        [{"node": "Renter pool", "type": "main", "index": 0}],
+        [{"node": "Owner pool", "type": "main", "index": 0}],
+        [{"node": "Service pool", "type": "main", "index": 0}]
+      ]
+    },
+    "Renter pool": {
+      "main": [[{"node": "Build prompts", "type": "main", "index": 0}]]
+    },
+    "Owner pool": {
+      "main": [[{"node": "Build prompts", "type": "main", "index": 0}]]
+    },
+    "Service pool": {
+      "main": [[{"node": "Build prompts", "type": "main", "index": 0}]]
+    },
+    "Build prompts": {
+      "main": [[{"node": "Groq chat completion", "type": "main", "index": 0}]]
+    },
+    "Groq chat completion": {
+      "main": [[{"node": "Validate output", "type": "main", "index": 0}]]
+    },
+    "Validate output": {
+      "main": [[{"node": "Needs regeneration?", "type": "main", "index": 0}]]
+    },
+    "Needs regeneration?": {
+      "main": [
+        [{"node": "Regenerate with feedback", "type": "main", "index": 0}],
+        [{"node": "Merge text branches", "type": "main", "index": 1}]
+      ]
+    },
+    "Regenerate with feedback": {
+      "main": [[{"node": "Merge text branches", "type": "main", "index": 0}]]
+    },
+    "Merge text branches": {
+      "main": [[{"node": "Cloudflare image generation", "type": "main", "index": 0}]]
+    },
+    "Cloudflare image generation": {
+      "main": [[{"node": "Decode image to binary", "type": "main", "index": 0}]]
+    },
+    "Decode image to binary": {
+      "main": [[{"node": "Send to Telegram", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "tags": []
+}

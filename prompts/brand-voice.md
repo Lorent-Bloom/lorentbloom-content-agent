@@ -36,21 +36,30 @@ which one you're writing for.
    Moldovan city. Never open with abstract / encyclopedic phrasing like
    'часто возникает необходимость', 'многие люди сталкиваются с',
    'обычно'.
-2. 'Вы' must always start with a capital letter В (then lowercase ы).
-   Lowercase 'вы' is wrong. ALL-CAPS 'ВЫ' is also wrong. In Romanian use
-   'Dvs.' or 'Dumneavoastră'. Never 'ты' / 'tu'.
+2. Formality per language:
+   - Russian: 'Вы' must always start with capital В then lowercase ы.
+     Lowercase 'вы' is wrong. ALL-CAPS 'ВЫ' is also wrong. Never 'ты'.
+   - Romanian: use 'Dvs.' or 'Dumneavoastră'. Never 'tu'.
+   - English: address the reader as 'you' (English has no formal/informal
+     distinction). Keep tone polished — prefer 'do not' over "don't",
+     'cannot' over "can't" for the formal register.
 3. The brand name 'Lorent Bloom' MUST appear in the post body — written
    exactly as 'Lorent Bloom', not transliterated. Don't say 'наша
-   платформа', 'наш сервис', 'platforma noastră' — say 'Lorent Bloom' or
-   'каталог Lorent Bloom'.
-4. City spelling matches the post language. Russian posts: 'Кишинёв',
-   'Бельцы', 'Кагул', 'Тирасполь', 'Комрат'. Romanian posts: 'Chișinău',
-   'Bălți', 'Cahul', 'Tiraspol', 'Comrat'. Never mix scripts inside one post.
+   платформа', 'наш сервис', 'platforma noastră', 'our platform' — say
+   'Lorent Bloom' or 'каталог Lorent Bloom' / 'Lorent Bloom catalog' /
+   'catalogul Lorent Bloom'.
+4. City spelling matches the post language. Never mix scripts inside one post.
+   - Russian: 'Кишинёв', 'Бельцы', 'Кагул', 'Тирасполь', 'Комрат' (Cyrillic).
+   - Romanian: 'Chișinău', 'Bălți', 'Cahul', 'Tiraspol', 'Comrat' (Latin + diacritics).
+   - English: 'Chișinău', 'Bălți', 'Cahul', 'Tiraspol', 'Comrat' (Latin + diacritics).
 5. End with a short observation that lands — not a generic save-money CTA.
    The closing should feel earned by the rest of the post. Do not copy
    verbatim from the examples below; write your own observation in the
    same spirit.
-6. Use real MDL prices ('3 500 лей', '150 лей в день'). No vague qualifiers.
+6. Use real MDL prices. No vague qualifiers.
+   - Russian: '3 500 лей', '150 лей в день'.
+   - Romanian: '3 500 lei', '150 lei pe zi'.
+   - English: '3,500 MDL' or '3,500 lei', '150 MDL/day' or '150 lei/day'.
 7. No emojis of any kind. Plain text only.
 8. Length: 80–150 words.
 9. Grammar must be correct Russian. Watch case agreement, subject-verb
@@ -140,6 +149,25 @@ Posts rotate across three perspectives with a weighted distribution:
 Implementation: the workflow's "Pick perspective" Code node rolls weighted
 random per run; the Switch node routes to the matching perspective pool.
 
+## Language rotation (per day, shuffled per week)
+
+Posts rotate across ru / ro / en using a day-of-week schedule that is itself
+re-shuffled every ISO week. The schedule is deterministic per week — the
+same week always produces the same Mon→Sun pattern, but each new week gets
+a fresh pattern (seeded by year × 100 + ISO week number).
+
+Weekly distribution: **3 days ru, 2 days ro, 2 days en** (43% / 29% / 29%).
+
+| Language | Weekly slots | Why |
+|---|---|---|
+| Russian (ru) | 3 | Largest audience in Moldova |
+| Romanian (ro) | 2 | Romanian-speaking audience |
+| English (en) | 2 | Expats, foreign visitors, international reach |
+
+Implementation: the "Pick language" Code node at the start of the workflow
+seeds mulberry32 with the ISO week number, shuffles `['ru','ru','ru','ro','ro','en','en']`,
+and indexes by current day-of-week (Mon=0 … Sun=6).
+
 ## Voice examples (human reference; in-prompt examples are above)
 
 ### Example 1 — Renter, listing spotlight (ru)
@@ -193,3 +221,22 @@ Anunțul și fotografiile sunt în catalogul Lorent Bloom. Contract digital și 
 > **Note:** Romanian text should be reviewed by a native speaker before
 > shipping to production. The voice principles transfer cleanly, but
 > nuance and idiom in Romanian deserve a human pass.
+
+---
+
+### Example 6 — English listing spotlight (en) — for reference
+
+Someone in Chișinău is looking for a professional Sony A7 IV camera this
+week — it rents for 350 lei a day.
+
+This is exactly the camera you do not need to buy if you only shoot once a
+year: a graduation, a friend's wedding, a long trip. Three days of rental
+costs about the same as a good dinner for two.
+
+The listing and photos are in the Lorent Bloom catalog. Digital contract
+and owner verification through IDNP — standard on every rental, no
+exceptions.
+
+> **Note:** English text is included to reach expats and foreign visitors.
+> Like Romanian, it should be reviewed by a fluent speaker before
+> production use — the voice should feel formal-but-warm, not stiff.

@@ -345,7 +345,10 @@
       "position": [
         2920,
         400
-      ]
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 8000
     },
     {
       "parameters": {
@@ -730,7 +733,10 @@
       "position": [
         4280,
         280
-      ]
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 8000
     },
     {
       "parameters": {
@@ -1540,6 +1546,48 @@
         420,
         400
       ]
+    },
+    {
+      "parameters": {},
+      "id": "err00000-err0-err0-err0-err000000001",
+      "name": "On error",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        1500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format an Error Trigger payload into a human-readable Telegram message,\n// and clear pending review state so the next /generate is not blocked.\n//\n// Error Trigger payload shape:\n//   { execution: { id, url, error: {message, stack}, lastNodeExecuted, mode },\n//     workflow:  { id, name } }\n\nconst p = $input.first().json;\nconst ex = p.execution || {};\nconst wf = p.workflow || {};\nconst err = ex.error || {};\n\nconst node = ex.lastNodeExecuted || 'unknown node';\nconst message = (err.message || 'no message').toString().split('\\n')[0].slice(0, 400);\nconst exUrl = ex.url || '';\n\nconst lines = [\n  '\u274c Workflow error',\n  '',\n  'Node: ' + node,\n  'Reason: ' + message,\n];\nif (exUrl) lines.push('Execution: ' + exUrl);\n\n// Clear pending so the user can immediately /generate again without\n// being blocked by 'A preview is already pending'.\nconst sd = $getWorkflowStaticData('global');\nif (sd && sd.pending) sd.pending = null;\n\nreturn [{ json: { errorText: lines.join('\\n') } }];\n"
+      },
+      "id": "err00000-err0-err0-err0-err000000002",
+      "name": "Build error notification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        1500
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ chat_id: $env.TELEGRAM_CHAT_ID, text: $json.errorText }) }}",
+        "options": {}
+      },
+      "id": "err00000-err0-err0-err0-err000000003",
+      "name": "Send error to Telegram",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        1500
+      ]
     }
   ],
   "connections": {
@@ -2214,6 +2262,28 @@
         [
           {
             "node": "Read brand voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On error": {
+      "main": [
+        [
+          {
+            "node": "Build error notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build error notification": {
+      "main": [
+        [
+          {
+            "node": "Send error to Telegram",
             "type": "main",
             "index": 0
           }

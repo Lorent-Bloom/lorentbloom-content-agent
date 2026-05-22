@@ -1,11 +1,16 @@
 name: rently-content-agent
 
-# n8n self-hosted, single-service stack.
+# n8n self-hosted, single-service stack (+ optional Caddy reverse proxy).
 # Uses n8n's built-in SQLite for state (workflows, credentials, executions).
 # The DB lives inside the n8n_data volume — back it up with the volume.
 #
-# Same file works for local and prod. Environment-specific values live in .env.
-# For local, n8n binds to 127.0.0.1 only (not reachable from the network).
+# Local dev:
+#   docker compose up -d           # n8n on 127.0.0.1:5678, no Caddy
+#
+# Production (server with real domain):
+#   docker compose --profile production up -d
+#   # Caddy listens on 80/443, fetches Let's Encrypt cert for $N8N_HOST,
+#   # and reverse-proxies to the n8n container.
 
 services:
   n8n:
@@ -13,6 +18,9 @@ services:
     container_name: n8n_app
     restart: unless-stopped
     ports:
+      # Bound to localhost only. In production, Caddy reaches n8n via the
+      # internal Docker network (host:n8n, port:5678) — this binding stays
+      # localhost so n8n is never exposed directly to the public internet.
       - "127.0.0.1:5678:5678"
     environment:
       N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
@@ -21,13 +29,16 @@ services:
       N8N_PROTOCOL: ${N8N_PROTOCOL:-http}
       WEBHOOK_URL: ${WEBHOOK_URL}
       GENERIC_TIMEZONE: ${GENERIC_TIMEZONE:-UTC}
+      # When Caddy is in front (production), tell n8n to trust the X-Forwarded-*
+      # headers so it generates correct URLs and respects HTTPS context.
+      N8N_PROXY_HOPS: "1"
       # Allow $env.NAME access from workflow expressions. n8n blocks this by
       # default for safety. We allow it because all sensitive values come
       # from .env (never typed into the workflow JSON in git).
       N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
       # Whitelist /data/prompts so Read/Write File nodes can load the brand
       # voice + topics catalog. n8n defaults to /home/node/.n8n-files only;
-      # we add ours alongside (colon-separated).
+      # we add ours alongside (semicolon-separated).
       N8N_RESTRICT_FILE_ACCESS_TO: "/home/node/.n8n-files;/data/prompts"
       # Workflow config — referenced via $env.NAME in workflow expressions
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
@@ -42,5 +53,28 @@ services:
       # the workflow never writes back.
       - ./prompts:/data/prompts:ro
 
+  # Reverse proxy with auto-TLS via Let's Encrypt. Only starts when invoked
+  # with `--profile production`. Reads N8N_HOST from .env and uses it as
+  # both the cert SNI and the only allowed Host.
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy_proxy
+    restart: unless-stopped
+    profiles: [production]
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      # Caddyfile reads ${N8N_HOST} via its env-var syntax.
+      N8N_HOST: ${N8N_HOST}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data         # certificates + ACME state — persist!
+      - caddy_config:/config
+    depends_on:
+      - n8n
+
 volumes:
   n8n_data:
+  caddy_data:
+  caddy_config:

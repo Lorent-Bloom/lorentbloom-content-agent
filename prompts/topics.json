@@ -1,0 +1,211 @@
+{
+  "renter": [
+    {
+      "archetype": "money-saving calculation",
+      "description": "перфоратор средней мощности, покупка ~3500 лей, аренда ~180 лей/день, для двух разовых задач (повесить полку, через год карниз для штор)",
+      "city": "Кишинёв",
+      "imagePrompt": "Young woman mounting a wooden floating shelf on a white wall using a cordless power drill, modern Scandinavian apartment, soft natural light, lifestyle photography",
+      "hashtags": ["#перфоратор", "#инструменты", "#ремонт", "#ремонтКвартиры", "#DIY"]
+    },
+    {
+      "archetype": "money-saving calculation",
+      "description": "мойка высокого давления для машины и террасы, покупка ~3000 лей, аренда ~200 лей/день, нужна весной и осенью",
+      "city": "Кагул",
+      "imagePrompt": "Man washing a dark car with a pressure washer in a residential driveway, water spray catching sunlight, sunny spring day, lifestyle photography",
+      "hashtags": ["#мойкаВД", "#автомойка", "#уборка", "#автоуход", "#дача"]
+    },
+    {
+      "archetype": "listing spotlight",
+      "description": "профессиональная камера Sony A7 IV сдаётся в аренду за 350 лей/день, подходит для выпускных, свадеб, больших поездок",
+      "city": "Кишинёв",
+      "imagePrompt": "A professional mirrorless camera resting on an open notebook next to a coffee cup, soft window light streaming in, minimalist composition, lifestyle photography",
+      "hashtags": ["#камера", "#фотограф", "#фототехника", "#свадьба", "#выпускной", "#путешествие"]
+    },
+    {
+      "archetype": "listing spotlight",
+      "description": "квадрокоптер DJI с камерой 4K, аренда ~400 лей/день, для свадеб, съёмки недвижимости, путешествий",
+      "city": "Кишинёв",
+      "imagePrompt": "A small drone hovering low over rolling vineyard hills at golden hour, soft warm sunlight, cinematic landscape photography",
+      "hashtags": ["#дрон", "#квадрокоптер", "#аэросъёмка", "#свадебнаяСъёмка", "#фотограф"]
+    },
+    {
+      "archetype": "seasonal / topical",
+      "description": "двухместная палатка для походов в горы, покупка ~2200 лей, аренда ~120 лей/день, лето — сезон выходных в горах и фестивалей",
+      "city": "Кишинёв",
+      "imagePrompt": "A small yellow camping tent pitched on a grassy hillside overlooking forested mountains, golden hour summer light, lifestyle outdoor photography",
+      "hashtags": ["#палатка", "#туризм", "#поход", "#лето", "#природа", "#кемпинг"]
+    },
+    {
+      "archetype": "seasonal / topical",
+      "description": "надувная байдарка для двоих, аренда ~150 лей/день, для летнего сплава по Днестру или озёрам Молдовы",
+      "city": "Кишинёв",
+      "imagePrompt": "Two people paddling a yellow inflatable kayak on a calm river surrounded by green forest, peaceful summer day, lifestyle outdoor photography",
+      "hashtags": ["#байдарка", "#сплав", "#Днестр", "#природа", "#активныйОтдых"]
+    },
+    {
+      "archetype": "listing spotlight",
+      "description": "горный велосипед хорошего бренда, аренда ~80-150 лей/день, для уикенда в Резервации Кодры или Старом Орхее",
+      "city": "Кишинёв",
+      "imagePrompt": "Mountain bike leaning against a tree on a forest trail covered in autumn leaves, soft sunlight through the canopy, lifestyle outdoor photography",
+      "hashtags": ["#горныйВелосипед", "#велосипед", "#спорт", "#Кодры", "#активныйОтдых"]
+    },
+    {
+      "archetype": "seasonal / topical",
+      "description": "горнолыжный комплект (лыжи + ботинки), аренда ~150 лей/день, для одной поездки в Карпаты зимой — нет смысла покупать за 5000+ лей",
+      "city": "Кишинёв",
+      "imagePrompt": "Pair of skis and ski boots leaning against a wooden mountain cabin wall, fresh snow on the ground, golden afternoon winter light, lifestyle photography",
+      "hashtags": ["#горныеЛыжи", "#лыжи", "#зима", "#Карпаты", "#спорт"]
+    },
+    {
+      "archetype": "seasonal / topical",
+      "description": "мощная Bluetooth-колонка JBL для вечеринок и пикников, аренда ~80 лей/день, летом — сезон выходных на природе",
+      "city": "Кишинёв",
+      "imagePrompt": "Small bluetooth speaker on a picnic blanket spread in a sunny park, friends relaxing softly blurred in the background, lifestyle photography",
+      "hashtags": ["#колонка", "#вечеринка", "#пикник", "#музыка", "#JBL"]
+    },
+    {
+      "archetype": "seasonal / topical",
+      "description": "караоке-система для дня рождения или новогодней вечеринки, аренда ~200 лей/день; покупка такой ~3000 лей и пылится 11 месяцев в году",
+      "city": "Орхей",
+      "imagePrompt": "Microphone and small speaker on a coffee table in a living room with festive string lights, warm evening atmosphere, lifestyle photography",
+      "hashtags": ["#караоке", "#вечеринка", "#деньРождения", "#праздник"]
+    },
+    {
+      "archetype": "listing spotlight",
+      "description": "вечернее платье для одного мероприятия (свадьба, выпускной), аренда ~200-400 лей/день, покупка такого ~1500-3000 лей",
+      "city": "Кишинёв",
+      "imagePrompt": "Elegant long evening dress hanging on a wooden hanger by a window, soft natural light, minimalist bedroom, fashion lifestyle photography",
+      "hashtags": ["#вечернееПлатье", "#платье", "#свадьба", "#выпускной", "#мода"]
+    },
+    {
+      "archetype": "money-saving calculation",
+      "description": "домашний проектор, покупка ~5000 лей, аренда ~250 лей/день, для домашнего киновечера или презентации раз в пару месяцев",
+      "city": "Бельцы",
+      "imagePrompt": "Family of three watching a movie projected on a living room wall, dim warm lighting, popcorn on the coffee table, cozy evening, lifestyle photography",
+      "hashtags": ["#проектор", "#киновечер", "#домашнееКино", "#презентация"]
+    },
+    {
+      "archetype": "money-saving calculation",
+      "description": "мультиварка-скороварка, покупка ~2000 лей, аренда ~100 лей/день, нужна на праздничный ужин для большой компании",
+      "city": "Бельцы",
+      "imagePrompt": "Modern pressure cooker on a kitchen counter next to fresh vegetables and herbs, bright daylight kitchen, lifestyle photography",
+      "hashtags": ["#мультиварка", "#скороварка", "#готовка", "#праздничныйУжин", "#кухня"]
+    }
+  ],
+  "owner": [
+    {
+      "archetype": "most-rented list",
+      "description": "какие 5 типов вещей чаще всего лежат у людей без дела дома и могут приносить деньги при сдаче в аренду",
+      "city": "Кишинёв",
+      "imagePrompt": "Tidy home storage shelf with a folded tent, a drill, a camera, an evening dress and a childrens scooter neatly arranged, soft daylight, minimalist composition, lifestyle photography",
+      "hashtags": ["#заработок", "#вещи", "#пассивныйДоход", "#совместноеПотребление"]
+    },
+    {
+      "archetype": "earning potential",
+      "description": "детский самокат или беговел, из которого ребёнок вырос — может приносить 80-150 лей в день вместо того чтобы пылиться",
+      "city": "Кишинёв",
+      "imagePrompt": "A childs blue scooter parked in the corner of a tidy hallway near a front door, soft afternoon light, lifestyle photography",
+      "hashtags": ["#детскийСамокат", "#дети", "#беговел", "#ребёнок"]
+    },
+    {
+      "archetype": "earning potential",
+      "description": "детское автокресло, из которого ребёнок вырос (но в хорошем состоянии) — приносит 50-100 лей в день; родителям-туристам в Кишинёве часто нужно на пару дней",
+      "city": "Кишинёв",
+      "imagePrompt": "A child safety car seat installed in the back seat of a parked car, sunlight streaming through the window, clean interior, lifestyle photography",
+      "hashtags": ["#детскоеАвтокресло", "#дети", "#родители", "#путешествия"]
+    },
+    {
+      "archetype": "earning potential",
+      "description": "швейная машинка, которой давно не пользовались — может приносить 80-150 лей в день; часто нужна для подгонки платья или подшивки штор",
+      "city": "Кишинёв",
+      "imagePrompt": "Vintage style sewing machine on a wooden table with neatly folded fabric and scissors, soft natural light through window, lifestyle photography",
+      "hashtags": ["#швейнаяМашинка", "#рукоделие", "#ателье", "#заработок"]
+    },
+    {
+      "archetype": "earning potential",
+      "description": "фотозона с фоном и реквизитом для дня рождения или корпоратива — то, что у фотографов часто простаивает между съёмками; может приносить 150-300 лей в день",
+      "city": "Кишинёв",
+      "imagePrompt": "A decorated photo backdrop with paper flowers and pastel balloons in a bright event venue, soft evening light, lifestyle photography",
+      "hashtags": ["#фотозона", "#праздник", "#свадьба", "#декор", "#фотограф"]
+    },
+    {
+      "archetype": "earning potential",
+      "description": "портативная электростанция 1000+ Вт, лежащая после одной поездки — может приносить ~200 лей/день, в кемпинговый сезон спрос высокий",
+      "city": "Бельцы",
+      "imagePrompt": "A portable power station sitting on a wooden camping table with phones charging from it, forest background, soft evening light, lifestyle photography",
+      "hashtags": ["#электростанция", "#кемпинг", "#природа", "#туризм"]
+    },
+    {
+      "archetype": "earning potential",
+      "description": "вечернее или свадебное платье, надетое один раз и оставленное в шкафу — может приносить 300-400 лей за каждый день аренды; спрос на одно мероприятие большой",
+      "city": "Кишинёв",
+      "imagePrompt": "An elegant white wedding dress hanging in a softly lit closet, mirror reflection visible, lifestyle fashion photography",
+      "hashtags": ["#свадебноеПлатье", "#свадьба", "#невеста", "#мода"]
+    },
+    {
+      "archetype": "earning potential",
+      "description": "набор фотообъективов, купленный когда-то для одного проекта и теперь пылящийся в ящике — может приносить от 100 до 300 лей в день",
+      "city": "Кишинёв",
+      "imagePrompt": "Several camera lenses arranged neatly on a wooden desk next to an open camera bag, soft natural light, lifestyle photography",
+      "hashtags": ["#фотообъективы", "#камера", "#фотограф", "#фототехника"]
+    },
+    {
+      "archetype": "stuff in garage",
+      "description": "вещи в гараже или кладовке — дрель, палатка, чемодан для путешествий, праздничные гирлянды — простой обзор того, что можно превратить в доход",
+      "city": "Кишинёв",
+      "imagePrompt": "A tidy garage corner with neatly stored items — a folded tent, a power drill, a travel suitcase, festive lights — soft daylight through a small window, minimalist composition, lifestyle photography",
+      "hashtags": ["#гараж", "#вещи", "#кладовка", "#пассивныйДоход"]
+    },
+    {
+      "archetype": "most-rented list",
+      "description": "что в Кишинёве сейчас арендуют чаще всего — обзор категорий, где спрос превышает предложение, чтобы владельцы понимали куда смотреть",
+      "city": "Кишинёв",
+      "imagePrompt": "A cozy living room with various items on a coffee table — a camera, a drill, a folded dress and a tablet — afternoon light, minimalist composition, lifestyle photography",
+      "hashtags": ["#спрос", "#каталог", "#заработок", "#вещиВАренду"]
+    }
+  ],
+  "service": [
+    {
+      "archetype": "trust: digital contract",
+      "description": "цифровой договор перед каждой арендой — что в нём фиксируется, почему это важно когда передаёшь свою вещь незнакомому человеку",
+      "city": "Молдова",
+      "imagePrompt": "Two hands meeting over a tablet showing a digital contract, clean modern office or cafe setting, soft natural light, lifestyle business photography",
+      "hashtags": ["#безопасность", "#цифровойДоговор", "#доверие"]
+    },
+    {
+      "archetype": "trust: IDNP verification",
+      "description": "проверка пользователей через IDNP — как Lorent Bloom убеждается, что Вы передаёте вещь реальному человеку, а не анонимному аккаунту",
+      "city": "Молдова",
+      "imagePrompt": "Close-up of a smartphone screen showing an identity verification interface, soft window light, modern minimalist composition, lifestyle photography",
+      "hashtags": ["#безопасность", "#IDNP", "#проверкаПользователей", "#доверие"]
+    },
+    {
+      "archetype": "mission",
+      "description": "почему мы создали Lorent Bloom — идея в том, что вещи в наших домах должны работать, а не пылиться; платформа возвращает разрыв между покупкой и реальной потребностью",
+      "city": "Молдова",
+      "imagePrompt": "A bright cozy home interior with various rarely-used items on a shelf — a camera, a tent in its bag, a guitar — soft warm light, lifestyle photography",
+      "hashtags": ["#разумноеПотребление", "#экология", "#совместноеПотребление", "#sharing"]
+    },
+    {
+      "archetype": "category breadth",
+      "description": "в каталоге Lorent Bloom более 50 категорий — от инструментов и фототехники до палаток, музыкальных инструментов и одежды для особых случаев; обзор того, что вообще можно найти",
+      "city": "Молдова",
+      "imagePrompt": "A flat-lay composition of diverse rental items on a wooden surface — drill, camera, tent fabric, evening dress, guitar, espresso cup — soft natural light, lifestyle photography",
+      "hashtags": ["#каталог", "#50категорий", "#разнообразие", "#вещиВАренду"]
+    },
+    {
+      "archetype": "local presence",
+      "description": "Lorent Bloom работает по всей Молдове — Кишинёв, Бельцы, Кагул, Тирасполь, Комрат; цифровой договор и проверка владельца действуют одинаково в каждом городе",
+      "city": "Молдова",
+      "imagePrompt": "A subtle map-inspired background with soft Moldovan landscape — vineyards and rolling hills at golden hour, atmospheric lifestyle photography",
+      "hashtags": ["#всяМолдова", "#Кишинёв", "#Бельцы", "#Кагул", "#Тирасполь", "#Орхей"]
+    },
+    {
+      "archetype": "service perks",
+      "description": "что Вы получаете в Lorent Bloom помимо самой аренды: бесплатная первая доставка, чат в приложении с владельцем, поддержка 24/7 если что-то пошло не так",
+      "city": "Молдова",
+      "imagePrompt": "A courier handing a small package to a smiling customer at a residential doorway, soft natural light, lifestyle photography",
+      "hashtags": ["#доставка", "#поддержка", "#чат", "#удобство"]
+    }
+  ]
+}

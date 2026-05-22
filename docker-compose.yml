@@ -21,8 +21,26 @@ services:
       N8N_PROTOCOL: ${N8N_PROTOCOL:-http}
       WEBHOOK_URL: ${WEBHOOK_URL}
       GENERIC_TIMEZONE: ${GENERIC_TIMEZONE:-UTC}
+      # Allow $env.NAME access from workflow expressions. n8n blocks this by
+      # default for safety. We allow it because all sensitive values come
+      # from .env (never typed into the workflow JSON in git).
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      # Whitelist /data/prompts so Read/Write File nodes can load the brand
+      # voice + topics catalog. n8n defaults to /home/node/.n8n-files only;
+      # we add ours alongside (colon-separated).
+      N8N_RESTRICT_FILE_ACCESS_TO: "/home/node/.n8n-files;/data/prompts"
+      # Workflow config — referenced via $env.NAME in workflow expressions
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+      CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID}
+      FB_PAGE_ID: ${FB_PAGE_ID}
+      IG_BUSINESS_ACCOUNT_ID: ${IG_BUSINESS_ACCOUNT_ID}
     volumes:
       - n8n_data:/home/node/.n8n
+      # Brand voice + topic catalog. Read by the workflow at runtime via
+      # the Read brand voice and Read topics nodes. Mounted read-only since
+      # the workflow never writes back.
+      - ./prompts:/data/prompts:ro
 
 volumes:
   n8n_data:

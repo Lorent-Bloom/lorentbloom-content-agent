@@ -70,7 +70,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Day-of-week language rotation with weekly random shuffle.\n// Same week → same Mon-Sun pattern; new week → fresh pattern.\n// Weekly distribution: 3 ru + 2 ro + 2 en (43% / 29% / 29%).\n// Seed: ISO year × 100 + ISO week number, so the rotation is deterministic\n// per week but unpredictable across weeks.\n\nconst now = new Date();\n\nfunction getISOWeek(d) {\n  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));\n  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));\n  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));\n  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);\n}\n\nconst weekNum = getISOWeek(now);\nconst year = now.getUTCFullYear();\nconst seed = year * 100 + weekNum;\n\n// Seeded PRNG (mulberry32) — deterministic for a given seed.\nfunction mulberry32(s) {\n  return function () {\n    let t = s += 0x6D2B79F5;\n    t = Math.imul(t ^ t >>> 15, t | 1);\n    t ^= t + Math.imul(t ^ t >>> 7, t | 61);\n    return ((t ^ t >>> 14) >>> 0) / 4294967296;\n  };\n}\n\nconst rng = mulberry32(seed);\n\n// Weekly slot pool: 3 ru + 2 ro + 2 en = 7 days.\nconst pool = ['ru', 'ru', 'ru', 'ro', 'ro', 'en', 'en'];\n\n// Fisher-Yates shuffle with seeded RNG → same week always shuffles the same way.\nfor (let i = pool.length - 1; i > 0; i--) {\n  const j = Math.floor(rng() * (i + 1));\n  [pool[i], pool[j]] = [pool[j], pool[i]];\n}\n\n// Map JS day (0=Sun..6=Sat) to ISO day-of-week (0=Mon..6=Sun).\nconst jsDay = now.getDay();\nconst dayIndex = (jsDay + 6) % 7;\nconst language = pool[dayIndex];\n\nreturn [{\n  json: {\n    language,\n    _rotation: { weekNum, year, dayIndex, weeklyPlan: pool }\n  }\n}];"
+        "jsCode": "// Day-of-week language rotation with weekly random shuffle.\n// Same week \u2192 same Mon-Sun pattern; new week \u2192 fresh pattern.\n// Weekly distribution: 3 ru + 2 ro + 2 en (43% / 29% / 29%).\n// Seed: ISO year \u00d7 100 + ISO week number, so the rotation is deterministic\n// per week but unpredictable across weeks.\n\nconst now = new Date();\n\nfunction getISOWeek(d) {\n  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));\n  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));\n  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));\n  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);\n}\n\nconst weekNum = getISOWeek(now);\nconst year = now.getUTCFullYear();\nconst seed = year * 100 + weekNum;\n\n// Seeded PRNG (mulberry32) \u2014 deterministic for a given seed.\nfunction mulberry32(s) {\n  return function () {\n    let t = s += 0x6D2B79F5;\n    t = Math.imul(t ^ t >>> 15, t | 1);\n    t ^= t + Math.imul(t ^ t >>> 7, t | 61);\n    return ((t ^ t >>> 14) >>> 0) / 4294967296;\n  };\n}\n\nconst rng = mulberry32(seed);\n\n// Weekly slot pool: 3 ru + 2 ro + 2 en = 7 days.\nconst pool = ['ru', 'ru', 'ru', 'ro', 'ro', 'en', 'en'];\n\n// Fisher-Yates shuffle with seeded RNG \u2192 same week always shuffles the same way.\nfor (let i = pool.length - 1; i > 0; i--) {\n  const j = Math.floor(rng() * (i + 1));\n  [pool[i], pool[j]] = [pool[j], pool[i]];\n}\n\n// Map JS day (0=Sun..6=Sat) to ISO day-of-week (0=Mon..6=Sun).\nconst jsDay = now.getDay();\nconst dayIndex = (jsDay + 6) % 7;\nconst language = pool[dayIndex];\n\nreturn [{\n  json: {\n    language,\n    _rotation: { weekNum, year, dayIndex, weeklyPlan: pool }\n  }\n}];"
       },
       "id": "abcdef00-aaaa-bbbb-cccc-000000000001",
       "name": "Pick language",
@@ -179,7 +179,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Renter perspective — topics loaded from prompts/topics.json\n// via Read topics + Extract topics JSON nodes. The extract node puts the\n// parsed JSON at $json (root), so $('Extract topics JSON').first().json\n// is the { renter, owner, service } object directly.\n\nconst allTopics = $('Extract topics JSON').first().json;\nconst topics = allTopics.renter;\nconst topic = topics[Math.floor(Math.random() * topics.length)];\n\nreturn [{\n  json: {\n    perspective: 'renter',\n    language: $input.first().json.language,\n    selectedTopic: topic\n  }\n}];"
+        "jsCode": "// Renter perspective \u2014 topics loaded from prompts/topics.json\n// via Read topics + Extract topics JSON nodes. The extract node puts the\n// parsed JSON at $json (root), so $('Extract topics JSON').first().json\n// is the { renter, owner, service } object directly.\n\nconst allTopics = $('Extract topics JSON').first().json;\nconst topics = allTopics.renter;\nconst topic = topics[Math.floor(Math.random() * topics.length)];\n\nreturn [{\n  json: {\n    perspective: 'renter',\n    language: $input.first().json.language,\n    selectedTopic: topic\n  }\n}];"
       },
       "id": "99999999-9999-9999-9999-999999999999",
       "name": "Renter pool",
@@ -192,7 +192,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Owner perspective — topics loaded from prompts/topics.json\n// via Read topics + Extract topics JSON nodes. The extract node puts the\n// parsed JSON at $json (root), so $('Extract topics JSON').first().json\n// is the { renter, owner, service } object directly.\n\nconst allTopics = $('Extract topics JSON').first().json;\nconst topics = allTopics.owner;\nconst topic = topics[Math.floor(Math.random() * topics.length)];\n\nreturn [{\n  json: {\n    perspective: 'owner',\n    language: $input.first().json.language,\n    selectedTopic: topic\n  }\n}];"
+        "jsCode": "// Owner perspective \u2014 topics loaded from prompts/topics.json\n// via Read topics + Extract topics JSON nodes. The extract node puts the\n// parsed JSON at $json (root), so $('Extract topics JSON').first().json\n// is the { renter, owner, service } object directly.\n\nconst allTopics = $('Extract topics JSON').first().json;\nconst topics = allTopics.owner;\nconst topic = topics[Math.floor(Math.random() * topics.length)];\n\nreturn [{\n  json: {\n    perspective: 'owner',\n    language: $input.first().json.language,\n    selectedTopic: topic\n  }\n}];"
       },
       "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
       "name": "Owner pool",
@@ -205,7 +205,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Service perspective — topics loaded from prompts/topics.json\n// via Read topics + Extract topics JSON nodes. The extract node puts the\n// parsed JSON at $json (root), so $('Extract topics JSON').first().json\n// is the { renter, owner, service } object directly.\n\nconst allTopics = $('Extract topics JSON').first().json;\nconst topics = allTopics.service;\nconst topic = topics[Math.floor(Math.random() * topics.length)];\n\nreturn [{\n  json: {\n    perspective: 'service',\n    language: $input.first().json.language,\n    selectedTopic: topic\n  }\n}];"
+        "jsCode": "// Service perspective \u2014 topics loaded from prompts/topics.json\n// via Read topics + Extract topics JSON nodes. The extract node puts the\n// parsed JSON at $json (root), so $('Extract topics JSON').first().json\n// is the { renter, owner, service } object directly.\n\nconst allTopics = $('Extract topics JSON').first().json;\nconst topics = allTopics.service;\nconst topic = topics[Math.floor(Math.random() * topics.length)];\n\nreturn [{\n  json: {\n    perspective: 'service',\n    language: $input.first().json.language,\n    selectedTopic: topic\n  }\n}];"
       },
       "id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
       "name": "Service pool",
@@ -218,7 +218,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Build prompts — embeds the multi-language brand-voice system prompt\n// (loaded from prompts/brand-voice-system.md via Read brand voice +\n// Extract brand voice text nodes) and assembles the Groq request body.\n\nconst perspective = $input.first().json.perspective;\nconst topic = $input.first().json.selectedTopic;\nconst language = $input.first().json.language;\n\n// City names per language. Topic data uses Russian (Cyrillic); we translate\n// on the fly so the user prompt instructs Groq with the right spelling.\nconst cityMap = {\n  'Кишинёв': { ru: 'Кишинёв', ro: 'Chișinău', en: 'Chișinău' },\n  'Бельцы':  { ru: 'Бельцы',  ro: 'Bălți',    en: 'Bălți' },\n  'Кагул':   { ru: 'Кагул',   ro: 'Cahul',    en: 'Cahul' },\n  'Тирасполь': { ru: 'Тирасполь', ro: 'Tiraspol', en: 'Tiraspol' },\n  'Комрат':  { ru: 'Комрат',  ro: 'Comrat',   en: 'Comrat' },\n  'Орхей':   { ru: 'Орхей',   ro: 'Orhei',    en: 'Orhei' },\n  'Молдова': { ru: 'Молдова', ro: 'Moldova',  en: 'Moldova' }\n};\nconst langLabel = { ru: 'Russian', ro: 'Romanian', en: 'English' }[language];\nconst city = (cityMap[topic.city] && cityMap[topic.city][language]) || topic.city;\n\n// Extract from File (operation=text) puts the text content at json.data.\nconst systemPrompt = $('Extract brand voice text').first().json.systemPrompt;\n\nconst userPrompt = `Perspective: ${perspective}\nArchetype: ${topic.archetype}\nTopic: ${topic.description}\nLanguage: ${langLabel} — write the ENTIRE post in ${langLabel}. The topic description above is in Russian for our internal reference; translate the idea into ${langLabel} with correct grammar, idiom, and the per-language formality rule.\nCity to reference: ${city}\n\nWrite ONE post in the ${perspective} perspective, following all mandatory rules and the feature whitelist. Vary the structure from previous outputs — do not reuse phrases from the example posts verbatim.\n\nIf the topic mentions multiple items (e.g. \"drill, tent, suitcase\"), pick ONE and stay with it for the entire post — do not jump between items mid-post.`;\n\nreturn [{\n  json: {\n    perspective,\n    language,\n    selectedTopic: topic,\n    requestBody: {\n      model: 'llama-3.3-70b-versatile',\n      temperature: 1.0,\n      messages: [\n        { role: 'system', content: systemPrompt },\n        { role: 'user', content: userPrompt }\n      ]\n    }\n  }\n}];"
+        "jsCode": "// Build prompts \u2014 embeds the multi-language brand-voice system prompt\n// (loaded from prompts/brand-voice-system.md via Read brand voice +\n// Extract brand voice text nodes) and assembles the Groq request body.\n\nconst perspective = $input.first().json.perspective;\nconst topic = $input.first().json.selectedTopic;\nconst language = $input.first().json.language;\n\n// City names per language. Topic data uses Russian (Cyrillic); we translate\n// on the fly so the user prompt instructs Groq with the right spelling.\nconst cityMap = {\n  '\u041a\u0438\u0448\u0438\u043d\u0451\u0432': { ru: '\u041a\u0438\u0448\u0438\u043d\u0451\u0432', ro: 'Chi\u0219in\u0103u', en: 'Chi\u0219in\u0103u' },\n  '\u0411\u0435\u043b\u044c\u0446\u044b':  { ru: '\u0411\u0435\u043b\u044c\u0446\u044b',  ro: 'B\u0103l\u021bi',    en: 'B\u0103l\u021bi' },\n  '\u041a\u0430\u0433\u0443\u043b':   { ru: '\u041a\u0430\u0433\u0443\u043b',   ro: 'Cahul',    en: 'Cahul' },\n  '\u0422\u0438\u0440\u0430\u0441\u043f\u043e\u043b\u044c': { ru: '\u0422\u0438\u0440\u0430\u0441\u043f\u043e\u043b\u044c', ro: 'Tiraspol', en: 'Tiraspol' },\n  '\u041a\u043e\u043c\u0440\u0430\u0442':  { ru: '\u041a\u043e\u043c\u0440\u0430\u0442',  ro: 'Comrat',   en: 'Comrat' },\n  '\u041e\u0440\u0445\u0435\u0439':   { ru: '\u041e\u0440\u0445\u0435\u0439',   ro: 'Orhei',    en: 'Orhei' },\n  '\u041c\u043e\u043b\u0434\u043e\u0432\u0430': { ru: '\u041c\u043e\u043b\u0434\u043e\u0432\u0430', ro: 'Moldova',  en: 'Moldova' }\n};\nconst langLabel = { ru: 'Russian', ro: 'Romanian', en: 'English' }[language];\nconst city = (cityMap[topic.city] && cityMap[topic.city][language]) || topic.city;\n\n// Extract from File (operation=text) puts the text content at json.data.\nconst systemPrompt = $('Extract brand voice text').first().json.systemPrompt;\n\nconst userPrompt = `Perspective: ${perspective}\nArchetype: ${topic.archetype}\nTopic: ${topic.description}\nLanguage: ${langLabel} \u2014 write the ENTIRE post in ${langLabel}. The topic description above is in Russian for our internal reference; translate the idea into ${langLabel} with correct grammar, idiom, and the per-language formality rule.\nCity to reference: ${city}\n\nWrite ONE post in the ${perspective} perspective, following all mandatory rules and the feature whitelist. Vary the structure from previous outputs \u2014 do not reuse phrases from the example posts verbatim.\n\nIf the topic mentions multiple items (e.g. \"drill, tent, suitcase\"), pick ONE and stay with it for the entire post \u2014 do not jump between items mid-post.`;\n\nreturn [{\n  json: {\n    perspective,\n    language,\n    selectedTopic: topic,\n    requestBody: {\n      model: 'llama-3.3-70b-versatile',\n      temperature: 1.0,\n      messages: [\n        { role: 'system', content: systemPrompt },\n        { role: 'user', content: userPrompt }\n      ]\n    }\n  }\n}];"
       },
       "id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
       "name": "Build prompts",
@@ -251,7 +251,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Deterministic post-validation. Universal checks (brand name, length,\n// emoji, CJK) run for every language. Russian-specific style checks\n// (Вы/ВЫ/вы/ты, forbidden phrases, mixed Latin city names) only run on\n// language === 'ru'. For ro/en, we also check that no stray Cyrillic\n// characters leaked into the body.\n//\n// If anything fails, builds a regenRequestBody = original conversation +\n// assistant draft + user message listing the issues. IF node branches on\n// _validate.passed.\n\nconst content = $input.first().json.choices[0].message.content;\nconst requestBody = $('Build prompts').first().json.requestBody;\nconst perspective = $('Build prompts').first().json.perspective;\nconst language = $('Build prompts').first().json.language;\n\nconst issues = [];\n\n// ─── Universal checks (all languages) ───\n\n// 1. Brand name must appear, written exactly as 'Lorent Bloom'\nif (!content.includes('Lorent Bloom')) {\n  issues.push('Brand name \"Lorent Bloom\" missing from the post — it must appear in the body, exactly as \"Lorent Bloom\" (not transliterated).');\n}\n\n// 2. Length (target 80-150, tolerate 60-200)\nconst wordCount = content.trim().split(/\\s+/).filter(w => w.length > 0).length;\nif (wordCount < 60) issues.push(`Too short: ${wordCount} words (target 80-150, minimum 60).`);\nif (wordCount > 200) issues.push(`Too long: ${wordCount} words (target 80-150, max 200).`);\n\n// 3. Emoji forbidden in any language\nconst emojiPattern = /[\\u{1F300}-\\u{1FAFF}\\u{2600}-\\u{27BF}\\u{1F000}-\\u{1F02F}\\u{1F0A0}-\\u{1F0FF}\\u{1F100}-\\u{1F1FF}\\u{1F200}-\\u{1F2FF}\\u{2700}-\\u{27BF}\\u{2B50}\\u{2B55}\\u{2705}\\u{274C}]/u;\nif (emojiPattern.test(content)) {\n  issues.push('Emoji detected — brand voice forbids ALL emojis (decorative or functional). Use plain text.');\n}\n\n// 4. CJK / foreign script token leak (Llama bug — '找到', '挂', etc.)\nconst cjkPattern = /[一-鿿぀-ヿ]/;\nif (cjkPattern.test(content)) {\n  issues.push('Foreign script characters (Chinese/Japanese) detected — likely Llama token leak. Use only the target language alphabet.');\n}\n\n// ─── Russian-only checks ───\n\nif (language === 'ru') {\n  // Lowercase 'вы'\n  const lowerVyPattern = /(^|[\\s,.;:!?\\-—«\"])вы(\\s|[,.;:!?\\-—»\"])/;\n  if (lowerVyPattern.test(content)) {\n    issues.push('Lowercase \"вы\" detected — formal address must always be capitalized \"Вы\" (capital В then lowercase ы).');\n  }\n  // ALL-CAPS 'ВЫ'\n  if (/(^|[\\s,.;:!?\\-—«\"])ВЫ(\\s|[,.;:!?\\-—»\"])/.test(content)) {\n    issues.push('ALL-CAPS \"ВЫ\" detected — should be \"Вы\" (capital В then lowercase ы).');\n  }\n  // Informal 'ты'\n  if (/(^|[\\s,.;:!?\\-—«\"])ты(\\s|[,.;:!?\\-—»\"])/i.test(content)) {\n    issues.push('Informal \"ты\" detected — brand voice requires formal \"Вы\" throughout, never \"ты\".');\n  }\n\n  // Forbidden Russian phrases\n  const forbidden = [\n    { rx: /С помощью нашей платформы/i, name: '\"С помощью нашей платформы\" (use \"В Lorent Bloom\" instead)' },\n    { rx: /часто возникает необходимость/i, name: '\"часто возникает необходимость\" (open with a concrete fact instead)' },\n    { rx: /многие сталкиваются с/i, name: '\"многие сталкиваются с\"' },\n    { rx: /Это разумное решение для тех/i, name: '\"Это разумное решение для тех...\"' },\n    { rx: /Это поможет (Вам|вам) сэкономить/i, name: '\"Это поможет Вам сэкономить\"' },\n    { rx: /(^|\\s)успейте/i, name: '\"успейте\" (no urgency cliches)' },\n    { rx: /не упустите/i, name: '\"не упустите\"' },\n    { rx: /ограниченное предложение/i, name: '\"ограниченное предложение\"' },\n    { rx: /тысячи (пользователей|людей)/i, name: '\"тысячи пользователей/людей\" (no fabricated stats)' },\n    { rx: /самый безопасный/i, name: '\"самый безопасный\" (no unprovable superlatives)' },\n    { rx: /лучший в Молдове/i, name: '\"лучший в Молдове\" (no unprovable superlatives)' },\n    { rx: /наша платформа/i, name: '\"наша платформа\" (use \"Lorent Bloom\" instead)' },\n    { rx: /многие пользователи/i, name: '\"многие пользователи\" — implied user count without basis' },\n    { rx: /около \\d+\\s*лей в день/i, name: '\"около X лей в день\" — vague price, use a specific number tied to a real item' },\n    { rx: /безделушк[аи]/i, name: '\"безделушки\" — dismissive of real items; use specific item names' }\n  ];\n  for (const { rx, name } of forbidden) {\n    if (rx.test(content)) issues.push(`Forbidden phrase: ${name}`);\n  }\n\n  // Mixed-script in ru post: Latin city names are wrong\n  const latinCities = ['Chișinău', 'Bălți', 'Cahul', 'Tiraspol', 'Comrat'];\n  for (const lc of latinCities) {\n    if (content.includes(lc)) {\n      issues.push(`Mixed script: \"${lc}\" (Latin) in a Russian post — use Cyrillic equivalent.`);\n    }\n  }\n}\n\n// ─── Romanian-only checks ───\n\nif (language === 'ro') {\n  // Stray Cyrillic in a Latin-script post\n  if (/[Ѐ-ӿ]/.test(content)) {\n    issues.push('Cyrillic characters detected in a Romanian post — write entirely in Latin script with Romanian diacritics.');\n  }\n  // 'tu' as informal you (light check — bounded by spaces to reduce false positives)\n  if (/(^|[\\s,.;:!?\\-—«\"])tu(\\s|[,.;:!?\\-—»\"])/.test(content)) {\n    issues.push('Informal \"tu\" detected — brand voice requires formal \"Dvs.\" / \"Dumneavoastră\", never \"tu\".');\n  }\n}\n\n// ─── English-only checks ───\n\nif (language === 'en') {\n  // Stray Cyrillic in a Latin-script post\n  if (/[Ѐ-ӿ]/.test(content)) {\n    issues.push('Cyrillic characters detected in an English post — write entirely in Latin script.');\n  }\n  // Contractions — flag the common ones for the formal register\n  const contractions = [/\\bdon't\\b/i, /\\bcan't\\b/i, /\\bwon't\\b/i, /\\bit's\\b/i, /\\byou're\\b/i, /\\bthey're\\b/i, /\\bwe're\\b/i];\n  for (const rx of contractions) {\n    if (rx.test(content)) {\n      issues.push(`Contraction \"${content.match(rx)[0]}\" — formal register prefers the expanded form (do not, cannot, will not, it is, you are, they are, we are).`);\n      break;\n    }\n  }\n}\n\nconst passed = issues.length === 0;\nlet regenRequestBody = null;\n\nif (!passed) {\n  const fixInstruction = `The draft you just wrote has these brand-voice issues:\n\n${issues.map((iss, i) => `${i + 1}. ${iss}`).join('\\n')}\n\nRewrite the post fixing EVERY issue. Keep the same topic, perspective (${perspective}), language (${language}), and approximate length. Output ONLY the corrected post — no commentary, no labels, no \"Here is the corrected post:\".`;\n\n  regenRequestBody = {\n    ...requestBody,\n    messages: [\n      ...requestBody.messages,\n      { role: 'assistant', content },\n      { role: 'user', content: fixInstruction }\n    ]\n  };\n}\n\nreturn [{\n  json: {\n    choices: $input.first().json.choices,\n    _validate: {\n      passed,\n      issues,\n      wordCount,\n      language,\n      regenRequestBody\n    }\n  }\n}];"
+        "jsCode": "// Deterministic post-validation. Universal checks (brand name, length,\n// emoji, CJK) run for every language. Russian-specific style checks\n// (\u0412\u044b/\u0412\u042b/\u0432\u044b/\u0442\u044b, forbidden phrases, mixed Latin city names) only run on\n// language === 'ru'. For ro/en, we also check that no stray Cyrillic\n// characters leaked into the body.\n//\n// If anything fails, builds a regenRequestBody = original conversation +\n// assistant draft + user message listing the issues. IF node branches on\n// _validate.passed.\n\nconst content = $input.first().json.choices[0].message.content;\nconst requestBody = $('Build prompts').first().json.requestBody;\nconst perspective = $('Build prompts').first().json.perspective;\nconst language = $('Build prompts').first().json.language;\n\nconst issues = [];\n\n// \u2500\u2500\u2500 Universal checks (all languages) \u2500\u2500\u2500\n\n// 1. Brand name must appear, written exactly as 'Lorent Bloom'\nif (!content.includes('Lorent Bloom')) {\n  issues.push('Brand name \"Lorent Bloom\" missing from the post \u2014 it must appear in the body, exactly as \"Lorent Bloom\" (not transliterated).');\n}\n\n// 2. Length (target 80-150, tolerate 60-200)\nconst wordCount = content.trim().split(/\\s+/).filter(w => w.length > 0).length;\nif (wordCount < 60) issues.push(`Too short: ${wordCount} words (target 80-150, minimum 60).`);\nif (wordCount > 200) issues.push(`Too long: ${wordCount} words (target 80-150, max 200).`);\n\n// 3. Emoji forbidden in any language\nconst emojiPattern = /[\\u{1F300}-\\u{1FAFF}\\u{2600}-\\u{27BF}\\u{1F000}-\\u{1F02F}\\u{1F0A0}-\\u{1F0FF}\\u{1F100}-\\u{1F1FF}\\u{1F200}-\\u{1F2FF}\\u{2700}-\\u{27BF}\\u{2B50}\\u{2B55}\\u{2705}\\u{274C}]/u;\nif (emojiPattern.test(content)) {\n  issues.push('Emoji detected \u2014 brand voice forbids ALL emojis (decorative or functional). Use plain text.');\n}\n\n// 4. CJK / foreign script token leak (Llama bug \u2014 '\u627e\u5230', '\u6302', etc.)\nconst cjkPattern = /[\u4e00-\u9fff\u3040-\u30ff]/;\nif (cjkPattern.test(content)) {\n  issues.push('Foreign script characters (Chinese/Japanese) detected \u2014 likely Llama token leak. Use only the target language alphabet.');\n}\n\n// \u2500\u2500\u2500 Russian-only checks \u2500\u2500\u2500\n\nif (language === 'ru') {\n  // Lowercase '\u0432\u044b'\n  const lowerVyPattern = /(^|[\\s,.;:!?\\-\u2014\u00ab\"])\u0432\u044b(\\s|[,.;:!?\\-\u2014\u00bb\"])/;\n  if (lowerVyPattern.test(content)) {\n    issues.push('Lowercase \"\u0432\u044b\" detected \u2014 formal address must always be capitalized \"\u0412\u044b\" (capital \u0412 then lowercase \u044b).');\n  }\n  // ALL-CAPS '\u0412\u042b'\n  if (/(^|[\\s,.;:!?\\-\u2014\u00ab\"])\u0412\u042b(\\s|[,.;:!?\\-\u2014\u00bb\"])/.test(content)) {\n    issues.push('ALL-CAPS \"\u0412\u042b\" detected \u2014 should be \"\u0412\u044b\" (capital \u0412 then lowercase \u044b).');\n  }\n  // Informal '\u0442\u044b'\n  if (/(^|[\\s,.;:!?\\-\u2014\u00ab\"])\u0442\u044b(\\s|[,.;:!?\\-\u2014\u00bb\"])/i.test(content)) {\n    issues.push('Informal \"\u0442\u044b\" detected \u2014 brand voice requires formal \"\u0412\u044b\" throughout, never \"\u0442\u044b\".');\n  }\n\n  // Forbidden Russian phrases\n  const forbidden = [\n    { rx: /\u0421 \u043f\u043e\u043c\u043e\u0449\u044c\u044e \u043d\u0430\u0448\u0435\u0439 \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u044b/i, name: '\"\u0421 \u043f\u043e\u043c\u043e\u0449\u044c\u044e \u043d\u0430\u0448\u0435\u0439 \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u044b\" (use \"\u0412 Lorent Bloom\" instead)' },\n    { rx: /\u0447\u0430\u0441\u0442\u043e \u0432\u043e\u0437\u043d\u0438\u043a\u0430\u0435\u0442 \u043d\u0435\u043e\u0431\u0445\u043e\u0434\u0438\u043c\u043e\u0441\u0442\u044c/i, name: '\"\u0447\u0430\u0441\u0442\u043e \u0432\u043e\u0437\u043d\u0438\u043a\u0430\u0435\u0442 \u043d\u0435\u043e\u0431\u0445\u043e\u0434\u0438\u043c\u043e\u0441\u0442\u044c\" (open with a concrete fact instead)' },\n    { rx: /\u043c\u043d\u043e\u0433\u0438\u0435 \u0441\u0442\u0430\u043b\u043a\u0438\u0432\u0430\u044e\u0442\u0441\u044f \u0441/i, name: '\"\u043c\u043d\u043e\u0433\u0438\u0435 \u0441\u0442\u0430\u043b\u043a\u0438\u0432\u0430\u044e\u0442\u0441\u044f \u0441\"' },\n    { rx: /\u042d\u0442\u043e \u0440\u0430\u0437\u0443\u043c\u043d\u043e\u0435 \u0440\u0435\u0448\u0435\u043d\u0438\u0435 \u0434\u043b\u044f \u0442\u0435\u0445/i, name: '\"\u042d\u0442\u043e \u0440\u0430\u0437\u0443\u043c\u043d\u043e\u0435 \u0440\u0435\u0448\u0435\u043d\u0438\u0435 \u0434\u043b\u044f \u0442\u0435\u0445...\"' },\n    { rx: /\u042d\u0442\u043e \u043f\u043e\u043c\u043e\u0436\u0435\u0442 (\u0412\u0430\u043c|\u0432\u0430\u043c) \u0441\u044d\u043a\u043e\u043d\u043e\u043c\u0438\u0442\u044c/i, name: '\"\u042d\u0442\u043e \u043f\u043e\u043c\u043e\u0436\u0435\u0442 \u0412\u0430\u043c \u0441\u044d\u043a\u043e\u043d\u043e\u043c\u0438\u0442\u044c\"' },\n    { rx: /(^|\\s)\u0443\u0441\u043f\u0435\u0439\u0442\u0435/i, name: '\"\u0443\u0441\u043f\u0435\u0439\u0442\u0435\" (no urgency cliches)' },\n    { rx: /\u043d\u0435 \u0443\u043f\u0443\u0441\u0442\u0438\u0442\u0435/i, name: '\"\u043d\u0435 \u0443\u043f\u0443\u0441\u0442\u0438\u0442\u0435\"' },\n    { rx: /\u043e\u0433\u0440\u0430\u043d\u0438\u0447\u0435\u043d\u043d\u043e\u0435 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0435/i, name: '\"\u043e\u0433\u0440\u0430\u043d\u0438\u0447\u0435\u043d\u043d\u043e\u0435 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0435\"' },\n    { rx: /\u0442\u044b\u0441\u044f\u0447\u0438 (\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u0439|\u043b\u044e\u0434\u0435\u0439)/i, name: '\"\u0442\u044b\u0441\u044f\u0447\u0438 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u0439/\u043b\u044e\u0434\u0435\u0439\" (no fabricated stats)' },\n    { rx: /\u0441\u0430\u043c\u044b\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u044b\u0439/i, name: '\"\u0441\u0430\u043c\u044b\u0439 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u044b\u0439\" (no unprovable superlatives)' },\n    { rx: /\u043b\u0443\u0447\u0448\u0438\u0439 \u0432 \u041c\u043e\u043b\u0434\u043e\u0432\u0435/i, name: '\"\u043b\u0443\u0447\u0448\u0438\u0439 \u0432 \u041c\u043e\u043b\u0434\u043e\u0432\u0435\" (no unprovable superlatives)' },\n    { rx: /\u043d\u0430\u0448\u0430 \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u0430/i, name: '\"\u043d\u0430\u0448\u0430 \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u0430\" (use \"Lorent Bloom\" instead)' },\n    { rx: /\u043c\u043d\u043e\u0433\u0438\u0435 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0438/i, name: '\"\u043c\u043d\u043e\u0433\u0438\u0435 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0438\" \u2014 implied user count without basis' },\n    { rx: /\u043e\u043a\u043e\u043b\u043e \\d+\\s*\u043b\u0435\u0439 \u0432 \u0434\u0435\u043d\u044c/i, name: '\"\u043e\u043a\u043e\u043b\u043e X \u043b\u0435\u0439 \u0432 \u0434\u0435\u043d\u044c\" \u2014 vague price, use a specific number tied to a real item' },\n    { rx: /\u0431\u0435\u0437\u0434\u0435\u043b\u0443\u0448\u043a[\u0430\u0438]/i, name: '\"\u0431\u0435\u0437\u0434\u0435\u043b\u0443\u0448\u043a\u0438\" \u2014 dismissive of real items; use specific item names' }\n  ];\n  for (const { rx, name } of forbidden) {\n    if (rx.test(content)) issues.push(`Forbidden phrase: ${name}`);\n  }\n\n  // Mixed-script in ru post: Latin city names are wrong\n  const latinCities = ['Chi\u0219in\u0103u', 'B\u0103l\u021bi', 'Cahul', 'Tiraspol', 'Comrat'];\n  for (const lc of latinCities) {\n    if (content.includes(lc)) {\n      issues.push(`Mixed script: \"${lc}\" (Latin) in a Russian post \u2014 use Cyrillic equivalent.`);\n    }\n  }\n}\n\n// \u2500\u2500\u2500 Romanian-only checks \u2500\u2500\u2500\n\nif (language === 'ro') {\n  // Stray Cyrillic in a Latin-script post\n  if (/[\u0400-\u04ff]/.test(content)) {\n    issues.push('Cyrillic characters detected in a Romanian post \u2014 write entirely in Latin script with Romanian diacritics.');\n  }\n  // 'tu' as informal you (light check \u2014 bounded by spaces to reduce false positives)\n  if (/(^|[\\s,.;:!?\\-\u2014\u00ab\"])tu(\\s|[,.;:!?\\-\u2014\u00bb\"])/.test(content)) {\n    issues.push('Informal \"tu\" detected \u2014 brand voice requires formal \"Dvs.\" / \"Dumneavoastr\u0103\", never \"tu\".');\n  }\n}\n\n// \u2500\u2500\u2500 English-only checks \u2500\u2500\u2500\n\nif (language === 'en') {\n  // Stray Cyrillic in a Latin-script post\n  if (/[\u0400-\u04ff]/.test(content)) {\n    issues.push('Cyrillic characters detected in an English post \u2014 write entirely in Latin script.');\n  }\n  // Contractions \u2014 flag the common ones for the formal register\n  const contractions = [/\\bdon't\\b/i, /\\bcan't\\b/i, /\\bwon't\\b/i, /\\bit's\\b/i, /\\byou're\\b/i, /\\bthey're\\b/i, /\\bwe're\\b/i];\n  for (const rx of contractions) {\n    if (rx.test(content)) {\n      issues.push(`Contraction \"${content.match(rx)[0]}\" \u2014 formal register prefers the expanded form (do not, cannot, will not, it is, you are, they are, we are).`);\n      break;\n    }\n  }\n}\n\nconst passed = issues.length === 0;\nlet regenRequestBody = null;\n\nif (!passed) {\n  const fixInstruction = `The draft you just wrote has these brand-voice issues:\n\n${issues.map((iss, i) => `${i + 1}. ${iss}`).join('\\n')}\n\nRewrite the post fixing EVERY issue. Keep the same topic, perspective (${perspective}), language (${language}), and approximate length. Output ONLY the corrected post \u2014 no commentary, no labels, no \"Here is the corrected post:\".`;\n\n  regenRequestBody = {\n    ...requestBody,\n    messages: [\n      ...requestBody.messages,\n      { role: 'assistant', content },\n      { role: 'user', content: fixInstruction }\n    ]\n  };\n}\n\nreturn [{\n  json: {\n    choices: $input.first().json.choices,\n    _validate: {\n      passed,\n      issues,\n      wordCount,\n      language,\n      regenRequestBody\n    }\n  }\n}];"
       },
       "id": "dddddddd-dddd-dddd-dddd-dddddddddddd",
       "name": "Validate output",
@@ -349,7 +349,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Compose preview — loop-tolerant. Builds captionText and packages the\n// binary image for the Telegram preview. Handles five upstream sources:\n//   1. Cloudflare image generation (initial / regen_both): item.json.result.image\n//   2. Regen image with hint: item.json.result.image (same shape as #1)\n//   3. Regen text with hint: item.json.choices (no result.image — reuse prior image)\n//   4. Override text from form: item.json.overrideText (reuse prior image)\n//   5. Wire downloaded as image: item.binary.image is the new upload (reuse prior text)\n\nconst item = $input.first();\nconst inJson = item.json || {};\nconst inBinary = item.binary || {};\n\n// ─── Text source resolution ───\nlet text;\nif (inJson.overrideText) {\n  text = inJson.overrideText;\n} else if (inJson.choices && inJson.choices[0]) {\n  text = inJson.choices[0].message.content;\n} else {\n  try {\n    text = $('Merge text branches').first().json.choices[0].message.content;\n  } catch (e) {\n    text = null;\n  }\n  if (!text) {\n    try {\n      text = $('Compose preview').first().json.text;\n    } catch (e) {}\n  }\n}\n\nif (!text) throw new Error('Compose preview: no text source available');\n\n// ─── Image source resolution ───\nlet imageBinary;\nlet _imageSource;\nlet _inBinaryKeys = Object.keys(inBinary);\nlet _inJsonShape = {\n  hasResultImage: !!(inJson.result && inJson.result.image),\n  hasChoices: !!(inJson.choices && inJson.choices[0]),\n  hasOverrideText: !!inJson.overrideText,\n  action: inJson.action || null,\n  new_image_url: inJson.new_image_url || null\n};\n\nif (inJson.result && inJson.result.image) {\n  imageBinary = {\n    data: inJson.result.image,\n    mimeType: 'image/png',\n    fileName: 'generated.png'\n  };\n  _imageSource = 'cloudflare_response';\n} else if (inBinary.image) {\n  imageBinary = inBinary.image;\n  _imageSource = 'inline_binary_image_key';\n} else {\n  // Maybe upstream put binary under a non-image key\n  const firstBinKey = _inBinaryKeys[0];\n  if (firstBinKey) {\n    imageBinary = inBinary[firstBinKey];\n    _imageSource = 'inline_binary_first_key:' + firstBinKey;\n  } else {\n    try {\n      const prior = $('Compose preview').first();\n      if (prior.binary && prior.binary.image) {\n        imageBinary = prior.binary.image;\n        _imageSource = 'historic_compose_preview';\n      }\n    } catch (e) {}\n  }\n}\n\nif (!imageBinary) throw new Error('Compose preview: no image source available. inBinaryKeys=' + JSON.stringify(_inBinaryKeys));\n\n// ─── Context (perspective, topic, language) ───\nlet perspective = inJson.perspective;\nlet topic = inJson.selectedTopic;\nlet language = inJson.language;\nif (!perspective || !topic || !language) {\n  const bp = $('Build prompts').first().json;\n  perspective = perspective || bp.perspective;\n  topic = topic || bp.selectedTopic;\n  language = language || bp.language;\n}\n\n// ─── Hashtag composition (recomputed each iteration for variety) ───\nconst hashtags = ['#LorentBloom'];\n\nconst brandTag = {\n  ru: '#АрендаМолдова',\n  ro: '#ÎnchirieriMoldova',\n  en: '#RentMoldova'\n}[language];\nhashtags.push(brandTag);\n\nconst perspectiveTags = {\n  renter:  { ru: '#АрендуйВМолдове', ro: '#ÎnchiriazăÎnMoldova', en: '#RentInMoldova' },\n  owner:   { ru: '#СдайВАренду',     ro: '#DăÎnChirie',           en: '#EarnRenting' },\n  service: null\n};\nconst ptag = perspectiveTags[perspective] && perspectiveTags[perspective][language];\nif (ptag) hashtags.push(ptag);\n\nif (language === 'ru') {\n  const topicTags = topic.hashtags || [];\n  const shuffled = [...topicTags].sort(() => Math.random() - 0.5);\n  hashtags.push(...shuffled.slice(0, Math.min(2, shuffled.length)));\n} else {\n  hashtags.push('#Moldova');\n}\n\nconst captionText = text + '\\n\\nhttps://lorentbloom.com\\n\\n' + hashtags.join(' ');\n\nreturn [{\n  json: {\n    perspective,\n    language,\n    selectedTopic: topic,\n    text,\n    captionText,\n    hashtagsUsed: hashtags,\n    _debug: { imageSource: _imageSource, inBinaryKeys: _inBinaryKeys, inJsonShape: _inJsonShape, imageBinarySize: imageBinary && imageBinary.fileSize }\n  },\n  binary: { image: imageBinary }\n}];"
+        "jsCode": "// Compose preview \u2014 loop-tolerant. Builds captionText and packages the\n// binary image for the Telegram preview. Handles five upstream sources:\n//   1. Cloudflare image generation (initial / regen_both): item.json.result.image\n//   2. Regen image with hint: item.json.result.image (same shape as #1)\n//   3. Regen text with hint: item.json.choices (no result.image \u2014 reuse prior image)\n//   4. Override text from form: item.json.overrideText (reuse prior image)\n//   5. Wire downloaded as image: item.binary.image is the new upload (reuse prior text)\n\nconst item = $input.first();\nconst inJson = item.json || {};\nconst inBinary = item.binary || {};\n\n// \u2500\u2500\u2500 Text source resolution \u2500\u2500\u2500\nlet text;\nif (inJson.overrideText) {\n  text = inJson.overrideText;\n} else if (inJson.choices && inJson.choices[0]) {\n  text = inJson.choices[0].message.content;\n} else {\n  try {\n    text = $('Merge text branches').first().json.choices[0].message.content;\n  } catch (e) {\n    text = null;\n  }\n  if (!text) {\n    try {\n      text = $('Compose preview').first().json.text;\n    } catch (e) {}\n  }\n}\n\nif (!text) throw new Error('Compose preview: no text source available');\n\n// \u2500\u2500\u2500 Image source resolution \u2500\u2500\u2500\nlet imageBinary;\nlet _imageSource;\nlet _inBinaryKeys = Object.keys(inBinary);\nlet _inJsonShape = {\n  hasResultImage: !!(inJson.result && inJson.result.image),\n  hasChoices: !!(inJson.choices && inJson.choices[0]),\n  hasOverrideText: !!inJson.overrideText,\n  action: inJson.action || null,\n  new_image_url: inJson.new_image_url || null\n};\n\nif (inJson.result && inJson.result.image) {\n  imageBinary = {\n    data: inJson.result.image,\n    mimeType: 'image/png',\n    fileName: 'generated.png'\n  };\n  _imageSource = 'cloudflare_response';\n} else if (inBinary.image) {\n  imageBinary = inBinary.image;\n  _imageSource = 'inline_binary_image_key';\n} else {\n  // Maybe upstream put binary under a non-image key\n  const firstBinKey = _inBinaryKeys[0];\n  if (firstBinKey) {\n    imageBinary = inBinary[firstBinKey];\n    _imageSource = 'inline_binary_first_key:' + firstBinKey;\n  } else {\n    try {\n      const prior = $('Compose preview').first();\n      if (prior.binary && prior.binary.image) {\n        imageBinary = prior.binary.image;\n        _imageSource = 'historic_compose_preview';\n      }\n    } catch (e) {}\n  }\n}\n\nif (!imageBinary) throw new Error('Compose preview: no image source available. inBinaryKeys=' + JSON.stringify(_inBinaryKeys));\n\n// \u2500\u2500\u2500 Context (perspective, topic, language) \u2500\u2500\u2500\nlet perspective = inJson.perspective;\nlet topic = inJson.selectedTopic;\nlet language = inJson.language;\nif (!perspective || !topic || !language) {\n  const bp = $('Build prompts').first().json;\n  perspective = perspective || bp.perspective;\n  topic = topic || bp.selectedTopic;\n  language = language || bp.language;\n}\n\n// \u2500\u2500\u2500 Hashtag composition (recomputed each iteration for variety) \u2500\u2500\u2500\nconst hashtags = ['#LorentBloom'];\n\nconst brandTag = {\n  ru: '#\u0410\u0440\u0435\u043d\u0434\u0430\u041c\u043e\u043b\u0434\u043e\u0432\u0430',\n  ro: '#\u00cenchirieriMoldova',\n  en: '#RentMoldova'\n}[language];\nhashtags.push(brandTag);\n\nconst perspectiveTags = {\n  renter:  { ru: '#\u0410\u0440\u0435\u043d\u0434\u0443\u0439\u0412\u041c\u043e\u043b\u0434\u043e\u0432\u0435', ro: '#\u00cenchiriaz\u0103\u00cenMoldova', en: '#RentInMoldova' },\n  owner:   { ru: '#\u0421\u0434\u0430\u0439\u0412\u0410\u0440\u0435\u043d\u0434\u0443',     ro: '#D\u0103\u00cenChirie',           en: '#EarnRenting' },\n  service: null\n};\nconst ptag = perspectiveTags[perspective] && perspectiveTags[perspective][language];\nif (ptag) hashtags.push(ptag);\n\nif (language === 'ru') {\n  const topicTags = topic.hashtags || [];\n  const shuffled = [...topicTags].sort(() => Math.random() - 0.5);\n  hashtags.push(...shuffled.slice(0, Math.min(2, shuffled.length)));\n} else {\n  hashtags.push('#Moldova');\n}\n\nconst captionText = text + '\\n\\nhttps://lorentbloom.com\\n\\n' + hashtags.join(' ');\n\nreturn [{\n  json: {\n    perspective,\n    language,\n    selectedTopic: topic,\n    text,\n    captionText,\n    hashtagsUsed: hashtags,\n    _debug: { imageSource: _imageSource, inBinaryKeys: _inBinaryKeys, inJsonShape: _inJsonShape, imageBinarySize: imageBinary && imageBinary.fileSize }\n  },\n  binary: { image: imageBinary }\n}];"
       },
       "id": "66666666-6666-6666-6666-666666666666",
       "name": "Compose preview",
@@ -378,7 +378,7 @@
             },
             {
               "name": "reply_markup",
-              "value": "={{ JSON.stringify({ inline_keyboard: [ [{ text: '✅ Approve & publish', callback_data: 'approve' }], [{ text: '🖼 Regenerate image', callback_data: 'regen_image' }], [{ text: '📝 Regenerate text', callback_data: 'regen_text' }], [{ text: '🔁 Regenerate both', callback_data: 'regen_both' }], [{ text: '✏️ Edit text manually', callback_data: 'edit_text' }], [{ text: '📷 Replace image', callback_data: 'replace_image' }] ] }) }}"
+              "value": "={{ JSON.stringify({ inline_keyboard: [ [{ text: '\u2705 Approve & publish', callback_data: 'approve' }], [{ text: '\ud83d\uddbc Regenerate image', callback_data: 'regen_image' }], [{ text: '\ud83d\udcdd Regenerate text', callback_data: 'regen_text' }], [{ text: '\ud83d\udd01 Regenerate both', callback_data: 'regen_both' }], [{ text: '\u270f\ufe0f Edit text manually', callback_data: 'edit_text' }], [{ text: '\ud83d\udcf7 Replace image', callback_data: 'replace_image' }] ] }) }}"
             },
             {
               "parameterType": "formBinaryData",
@@ -434,7 +434,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Parse the webhook body sent by the Telegram action handler chain.\n// Body shape:\n//   { action: 'approve|regen_image|regen_text|regen_both|edit_text|replace_image',\n//     feedback: '' | '...',     // for regen_* if user provided a hint\n//     new_text: '' | '...',     // for edit_text\n//     new_image_url: '' | 'https://...'  // for replace_image (Catbox URL handler uploaded)\n//   }\n//\n// Carries forward the pre-Wait state (caption, binary, topic, language) from\n// the most recent Compose preview execution so every downstream branch has\n// a full item to work with.\n\nconst item = $input.first();\n// Wait node webhook resume puts the body on item.json.body (n8n v1.x) — fall back to item.json.\nconst body = (item.json && item.json.body) ? item.json.body : (item.json || {});\n\nconst action = body.action || 'invalid';\nconst feedback = body.feedback || '';\nconst new_text = body.new_text || '';\nconst new_image_url = body.new_image_url || '';\n\nconst validActions = ['approve', 'regen_image', 'regen_text', 'regen_both', 'edit_text', 'replace_image'];\nlet normalizedAction = action;\nlet validationError = null;\n\nif (!validActions.includes(action)) {\n  normalizedAction = 'invalid';\n  validationError = `Unknown action received: ${action}`;\n}\n\n// Pre-Wait state from the most recent Compose preview execution.\nconst composePreview = $('Compose preview').first();\n\nconst outputJson = {\n  action: normalizedAction,\n  feedback,\n  new_text,\n  new_image_url,\n  validationError,\n  perspective: composePreview.json.perspective,\n  language: composePreview.json.language,\n  selectedTopic: composePreview.json.selectedTopic,\n  captionText: composePreview.json.captionText,\n  hashtagsUsed: composePreview.json.hashtagsUsed\n};\n\nif (normalizedAction === 'invalid') {\n  outputJson.captionText = '[Invalid action: ' + validationError + ']\\n\\n' + outputJson.captionText;\n}\n\nconst outputBinary = {};\nif (composePreview.binary && composePreview.binary.image) {\n  outputBinary.image = composePreview.binary.image;\n}\n\nreturn [{ json: outputJson, binary: outputBinary }];"
+        "jsCode": "// Parse the webhook body sent by the Telegram action handler chain.\n// Body shape:\n//   { action: 'approve|regen_image|regen_text|regen_both|edit_text|replace_image',\n//     feedback: '' | '...',     // for regen_* if user provided a hint\n//     new_text: '' | '...',     // for edit_text\n//     new_image_url: '' | 'https://...'  // for replace_image (Catbox URL handler uploaded)\n//   }\n//\n// Carries forward the pre-Wait state (caption, binary, topic, language) from\n// the most recent Compose preview execution so every downstream branch has\n// a full item to work with.\n\nconst item = $input.first();\n// Wait node webhook resume puts the body on item.json.body (n8n v1.x) \u2014 fall back to item.json.\nconst body = (item.json && item.json.body) ? item.json.body : (item.json || {});\n\nconst action = body.action || 'invalid';\nconst feedback = body.feedback || '';\nconst new_text = body.new_text || '';\nconst new_image_url = body.new_image_url || '';\n\nconst validActions = ['approve', 'regen_image', 'regen_text', 'regen_both', 'edit_text', 'replace_image'];\nlet normalizedAction = action;\nlet validationError = null;\n\nif (!validActions.includes(action)) {\n  normalizedAction = 'invalid';\n  validationError = `Unknown action received: ${action}`;\n}\n\n// Pre-Wait state from the most recent Compose preview execution.\nconst composePreview = $('Compose preview').first();\n\nconst outputJson = {\n  action: normalizedAction,\n  feedback,\n  new_text,\n  new_image_url,\n  validationError,\n  perspective: composePreview.json.perspective,\n  language: composePreview.json.language,\n  selectedTopic: composePreview.json.selectedTopic,\n  captionText: composePreview.json.captionText,\n  hashtagsUsed: composePreview.json.hashtagsUsed\n};\n\nif (normalizedAction === 'invalid') {\n  outputJson.captionText = '[Invalid action: ' + validationError + ']\\n\\n' + outputJson.captionText;\n}\n\nconst outputBinary = {};\nif (composePreview.binary && composePreview.binary.image) {\n  outputBinary.image = composePreview.binary.image;\n}\n\nreturn [{ json: outputJson, binary: outputBinary }];"
       },
       "id": "pa111111-pa11-pa11-pa11-pa1111111111",
       "name": "Parse resume payload",
@@ -740,7 +740,7 @@
         "nodeCredentialType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: 'llama-3.3-70b-versatile', temperature: 1.0, messages: [...$('Build prompts').first().json.requestBody.messages, { role: 'assistant', content: $('Compose preview').first().json.text }, { role: 'user', content: 'Rewrite the post entirely. ' + ($json.feedback ? 'Reviewer hint: ' + $json.feedback + '. ' : '') + 'Keep language=' + $json.language + ', perspective=' + $json.perspective + '. Output ONLY the post — no commentary.' }] }) }}",
+        "jsonBody": "={{ JSON.stringify({ model: 'llama-3.3-70b-versatile', temperature: 1.0, messages: [...$('Build prompts').first().json.requestBody.messages, { role: 'assistant', content: $('Compose preview').first().json.text }, { role: 'user', content: 'Rewrite the post entirely. ' + ($json.feedback ? 'Reviewer hint: ' + $json.feedback + '. ' : '') + 'Keep language=' + $json.language + ', perspective=' + $json.perspective + '. Output ONLY the post \u2014 no commentary.' }] }) }}",
         "options": {}
       },
       "id": "re222222-re22-re22-re22-re2222222222",
@@ -880,7 +880,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Handle a callback_query (button tap on the preview message).\n// - Verifies the tap matches the currently-pending review (rejects stale buttons).\n// - For 'approve': clears pending and routes to resume the generator immediately.\n// - For 'regen_*' / 'edit_text' / 'replace_image': records waitingFor in static\n//   data and routes to a Telegram sendMessage that asks for the input.\n\nconst cb = $input.first().json.callback_query;\nconst action = (cb && cb.data) || null;\nconst messageId = cb && cb.message && cb.message.message_id;\nconst chatId = cb && cb.message && cb.message.chat && cb.message.chat.id;\nconst callbackQueryId = cb && cb.id;\n\nconst data = $getWorkflowStaticData('global');\nconst pending = data.pending;\n\n// Reject stale or mismatched taps.\nif (!pending || pending.messageId !== messageId || pending.chatId !== chatId) {\n  let reason;\n  if (!pending) {\n    reason = 'pending is null/missing in staticData — Save pending state did not write or write was lost';\n  } else if (pending.messageId !== messageId) {\n    reason = `messageId mismatch: button=${messageId} (type ${typeof messageId}) vs pending=${pending.messageId} (type ${typeof pending.messageId})`;\n  } else if (pending.chatId !== chatId) {\n    reason = `chatId mismatch: button=${chatId} (type ${typeof chatId}) vs pending=${pending.chatId} (type ${typeof pending.chatId})`;\n  }\n  return [{\n    json: {\n      _nextStep: 'ignore',\n      reason,\n      callbackQueryId,\n      buttonChatId: chatId,\n      buttonMessageId: messageId,\n      pendingSnapshot: pending\n    }\n  }];\n}\n\nlet nextStep, askText, waitingFor, resumeBody;\n\nif (action === 'approve') {\n  nextStep = 'resume';\n  resumeBody = { action: 'approve' };\n  data.pending = null;\n} else if (action === 'regen_image' || action === 'regen_text' || action === 'regen_both') {\n  nextStep = 'ask';\n  waitingFor = 'hint_for_' + action;\n  askText = 'Send a short style hint as a text reply (e.g. \"darker, no people\" or \"shorter, more direct\"), or send /skip to regenerate without a hint.';\n  data.pending.waitingFor = waitingFor;\n} else if (action === 'edit_text') {\n  nextStep = 'ask';\n  waitingFor = 'edit_text';\n  askText = 'Send the new caption as a text reply. It will replace the current post body verbatim (URL and hashtags get re-added automatically).';\n  data.pending.waitingFor = waitingFor;\n} else if (action === 'replace_image') {\n  nextStep = 'ask';\n  waitingFor = 'replace_image';\n  askText = 'Send the new image as a photo in this chat. It will replace the current preview image.';\n  data.pending.waitingFor = waitingFor;\n} else {\n  nextStep = 'ignore';\n  return [{\n    json: {\n      _nextStep: 'ignore',\n      reason: 'Unknown callback_data: ' + action,\n      callbackQueryId,\n      chatId\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    _nextStep: nextStep,\n    callbackQueryId,\n    chatId,\n    askText,\n    waitingFor,\n    resumeUrl: pending.resumeUrl,\n    resumeBody\n  }\n}];"
+        "jsCode": "// Handle a callback_query (button tap on the preview message).\n// - Verifies the tap matches the currently-pending review (rejects stale buttons).\n// - For 'approve': clears pending and routes to resume the generator immediately.\n// - For 'regen_*' / 'edit_text' / 'replace_image': records waitingFor in static\n//   data and routes to a Telegram sendMessage that asks for the input.\n\nconst cb = $input.first().json.callback_query;\nconst action = (cb && cb.data) || null;\nconst messageId = cb && cb.message && cb.message.message_id;\nconst chatId = cb && cb.message && cb.message.chat && cb.message.chat.id;\nconst callbackQueryId = cb && cb.id;\n\nconst data = $getWorkflowStaticData('global');\nconst pending = data.pending;\n\n// Reject stale or mismatched taps.\nif (!pending || pending.messageId !== messageId || pending.chatId !== chatId) {\n  let reason;\n  if (!pending) {\n    reason = 'pending is null/missing in staticData \u2014 Save pending state did not write or write was lost';\n  } else if (pending.messageId !== messageId) {\n    reason = `messageId mismatch: button=${messageId} (type ${typeof messageId}) vs pending=${pending.messageId} (type ${typeof pending.messageId})`;\n  } else if (pending.chatId !== chatId) {\n    reason = `chatId mismatch: button=${chatId} (type ${typeof chatId}) vs pending=${pending.chatId} (type ${typeof pending.chatId})`;\n  }\n  return [{\n    json: {\n      _nextStep: 'ignore',\n      reason,\n      callbackQueryId,\n      buttonChatId: chatId,\n      buttonMessageId: messageId,\n      pendingSnapshot: pending\n    }\n  }];\n}\n\nlet nextStep, askText, waitingFor, resumeBody;\n\nif (action === 'approve') {\n  nextStep = 'resume';\n  resumeBody = { action: 'approve' };\n  data.pending = null;\n} else if (action === 'regen_image' || action === 'regen_text' || action === 'regen_both') {\n  nextStep = 'ask';\n  waitingFor = 'hint_for_' + action;\n  askText = 'Send a short style hint as a text reply (e.g. \"darker, no people\" or \"shorter, more direct\"), or send /skip to regenerate without a hint.';\n  data.pending.waitingFor = waitingFor;\n} else if (action === 'edit_text') {\n  nextStep = 'ask';\n  waitingFor = 'edit_text';\n  askText = 'Send the new caption as a text reply. It will replace the current post body verbatim (URL and hashtags get re-added automatically).';\n  data.pending.waitingFor = waitingFor;\n} else if (action === 'replace_image') {\n  nextStep = 'ask';\n  waitingFor = 'replace_image';\n  askText = 'Send the new image as a photo in this chat. It will replace the current preview image.';\n  data.pending.waitingFor = waitingFor;\n} else {\n  nextStep = 'ignore';\n  return [{\n    json: {\n      _nextStep: 'ignore',\n      reason: 'Unknown callback_data: ' + action,\n      callbackQueryId,\n      chatId\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    _nextStep: nextStep,\n    callbackQueryId,\n    chatId,\n    askText,\n    waitingFor,\n    resumeUrl: pending.resumeUrl,\n    resumeBody\n  }\n}];"
       },
       "id": "hc111111-hc11-hc11-hc11-hc1111111111",
       "name": "Handle callback",
@@ -1013,7 +1013,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Handle a message update (text reply or photo).\n// - If no pending review is waiting for input, ignores.\n// - If pending.waitingFor matches the message kind, builds a resume payload\n//   and routes to the resume HTTP. Clears waitingFor afterward.\n//\n// waitingFor values:\n//   'edit_text'           — expect text → resume with {action:'edit_text', new_text}\n//   'hint_for_regen_*'    — expect text → resume with {action:'regen_*', feedback}\n//                            (text '/skip' → feedback='')\n//   'replace_image'       — expect photo → fetch file → upload to Catbox → resume\n//                            with {action:'replace_image', new_image_url}\n\nconst msg = $input.first().json.message;\nconst text = msg && msg.text;\nconst photo = msg && msg.photo;\nconst chatId = msg && msg.chat && msg.chat.id;\n\nconst data = $getWorkflowStaticData('global');\nconst pending = data.pending;\n\nif (!pending || !pending.waitingFor) {\n  return [{ json: { _nextStep: 'ignore', reason: 'No pending review waiting for input.' } }];\n}\nif (pending.chatId !== chatId) {\n  return [{ json: { _nextStep: 'ignore', reason: 'Message from a different chat.' } }];\n}\n\nconst waitingFor = pending.waitingFor;\n\nif (waitingFor === 'edit_text') {\n  if (!text) return [{ json: { _nextStep: 'ignore', reason: 'edit_text expected a text reply.' } }];\n  data.pending = null;\n  return [{\n    json: {\n      _nextStep: 'resume_text',\n      resumeUrl: pending.resumeUrl,\n      resumeBody: { action: 'edit_text', new_text: text }\n    }\n  }];\n}\n\nif (waitingFor.startsWith('hint_for_')) {\n  if (!text) return [{ json: { _nextStep: 'ignore', reason: 'Hint expected a text reply.' } }];\n  const action = waitingFor.replace('hint_for_', '');\n  const feedback = text.trim() === '/skip' ? '' : text;\n  data.pending = null;\n  return [{\n    json: {\n      _nextStep: 'resume_text',\n      resumeUrl: pending.resumeUrl,\n      resumeBody: { action, feedback }\n    }\n  }];\n}\n\nif (waitingFor === 'replace_image') {\n  if (!photo || photo.length === 0) {\n    return [{ json: { _nextStep: 'ignore', reason: 'replace_image expected a photo.' } }];\n  }\n  const file_id = photo[photo.length - 1].file_id; // largest size\n  data.pending = null;\n  return [{\n    json: {\n      _nextStep: 'resume_image',\n      resumeUrl: pending.resumeUrl,\n      file_id\n    }\n  }];\n}\n\nreturn [{ json: { _nextStep: 'ignore', reason: 'Unknown waitingFor: ' + waitingFor } }];"
+        "jsCode": "// Handle a message update (text reply, photo, or slash command).\n//\n// Priority:\n//   1) Slash commands (text starting with '/', except the in-hint '/skip')\n//      route to the command branch regardless of pending state.\n//   2) If a pending review is waiting for input, route to the matching\n//      resume branch and clear waitingFor.\n//   3) Otherwise ignore.\n//\n// waitingFor values handled below:\n//   'edit_text'           \u2014 expect text \u2192 resume with {action:'edit_text', new_text}\n//   'hint_for_regen_*'    \u2014 expect text \u2192 resume with {action:'regen_*', feedback}\n//                            (text '/skip' \u2192 feedback='')\n//   'replace_image'       \u2014 expect photo \u2192 fetch file \u2192 upload to Catbox \u2192 resume\n//                            with {action:'replace_image', new_image_url}\n\nconst msg = $input.first().json.message;\nconst text = msg && msg.text;\nconst photo = msg && msg.photo;\nconst chatId = msg && msg.chat && msg.chat.id;\n\nconst data = $getWorkflowStaticData('global');\nconst pending = data.pending;\n\n// 1) Slash command detection \u2014 wins over any pending hint flow.\n//    '/skip' is reserved for the regen hint flow and not treated as a command.\nif (typeof text === 'string' && text.trim().startsWith('/') && text.trim() !== '/skip') {\n  const parts = text.trim().split(/\\s+/);\n  return [{\n    json: {\n      _nextStep: 'command',\n      _command: parts[0].toLowerCase(),\n      _args: parts.slice(1).join(' '),\n      chatId,\n    }\n  }];\n}\n\nif (!pending || !pending.waitingFor) {\n  return [{ json: { _nextStep: 'ignore', reason: 'No pending review waiting for input.' } }];\n}\nif (pending.chatId !== chatId) {\n  return [{ json: { _nextStep: 'ignore', reason: 'Message from a different chat.' } }];\n}\n\nconst waitingFor = pending.waitingFor;\n\nif (waitingFor === 'edit_text') {\n  if (!text) return [{ json: { _nextStep: 'ignore', reason: 'edit_text expected a text reply.' } }];\n  data.pending = null;\n  return [{\n    json: {\n      _nextStep: 'resume_text',\n      resumeUrl: pending.resumeUrl,\n      resumeBody: { action: 'edit_text', new_text: text }\n    }\n  }];\n}\n\nif (waitingFor.startsWith('hint_for_')) {\n  if (!text) return [{ json: { _nextStep: 'ignore', reason: 'Hint expected a text reply.' } }];\n  const action = waitingFor.replace('hint_for_', '');\n  const feedback = text.trim() === '/skip' ? '' : text;\n  data.pending = null;\n  return [{\n    json: {\n      _nextStep: 'resume_text',\n      resumeUrl: pending.resumeUrl,\n      resumeBody: { action, feedback }\n    }\n  }];\n}\n\nif (waitingFor === 'replace_image') {\n  if (!photo || photo.length === 0) {\n    return [{ json: { _nextStep: 'ignore', reason: 'replace_image expected a photo.' } }];\n  }\n  const file_id = photo[photo.length - 1].file_id; // largest size\n  data.pending = null;\n  return [{\n    json: {\n      _nextStep: 'resume_image',\n      resumeUrl: pending.resumeUrl,\n      file_id\n    }\n  }];\n}\n\nreturn [{ json: { _nextStep: 'ignore', reason: 'Unknown waitingFor: ' + waitingFor } }];\n"
       },
       "id": "hm111111-hm11-hm11-hm11-hm1111111111",
       "name": "Handle message",
@@ -1071,6 +1071,28 @@
               },
               "renameOutput": true,
               "outputKey": "resume_image"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json._nextStep }}",
+                    "rightValue": "command",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "command"
             },
             {
               "conditions": {
@@ -1271,7 +1293,7 @@
         "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ chat_id: $env.TELEGRAM_CHAT_ID, text: '✅ Published\\n\\nFacebook: https://www.facebook.com/' + $('FB Page post').first().json.post_id + '\\nInstagram: ' + ($json.permalink || 'https://www.instagram.com/'), disable_web_page_preview: false }) }}",
+        "jsonBody": "={{ JSON.stringify({ chat_id: $env.TELEGRAM_CHAT_ID, text: '\u2705 Published\\n\\nFacebook: https://www.facebook.com/' + $('FB Page post').first().json.post_id + '\\nInstagram: ' + ($json.permalink || 'https://www.instagram.com/'), disable_web_page_preview: false }) }}",
         "options": {}
       },
       "id": "sl111111-sl11-sl11-sl11-sl1111111111",
@@ -1289,7 +1311,7 @@
         "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ chat_id: $env.TELEGRAM_CHAT_ID, text: '⏳ Publishing to Facebook and Instagram...' }) }}",
+        "jsonBody": "={{ JSON.stringify({ chat_id: $env.TELEGRAM_CHAT_ID, text: '\u23f3 Publishing to Facebook and Instagram...' }) }}",
         "options": {}
       },
       "id": "sp333333-sp33-sp33-sp33-sp3333333333",
@@ -1300,6 +1322,224 @@
         3940,
         0
       ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "* * * * *"
+            }
+          ]
+        }
+      },
+      "id": "sch00000-sch0-sch0-sch0-sch000000001",
+      "name": "Schedule trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Fires every minute. Emits one item only when the saved schedule\n// matches the current local time in GENERIC_TIMEZONE, and we have\n// not already fired today.\n//\n// Schedule shape (in $getWorkflowStaticData('global').schedule):\n//   { enabled: bool, time: 'HH:MM', lastFiredAt: 'YYYY-MM-DD' | null }\n//\n// Empty array = silent no-op; the rest of the workflow does not run.\n\nconst sd = $getWorkflowStaticData('global');\nconst sched = sd.schedule;\nif (!sched || !sched.enabled || !sched.time) return [];\n\nconst tz = $env.GENERIC_TIMEZONE || 'UTC';\nconst now = new Date();\n\n// Use formatToParts to avoid locale-formatting surprises (en-GB returns\n// '24:xx' at midnight, some locales add ' AM/PM' or use unicode separators).\nconst timeParts = new Intl.DateTimeFormat('en-US', {\n  timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false\n}).formatToParts(now);\nconst dateParts = new Intl.DateTimeFormat('en-CA', {\n  timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit'\n}).formatToParts(now);\n\nconst getPart = (parts, type) => (parts.find(p => p.type === type) || {}).value;\n\n// en-US 'hour: 2-digit, hour12:false' can return '24' at midnight \u2014 clamp.\nlet hh = getPart(timeParts, 'hour');\nif (hh === '24') hh = '00';\nconst mm = getPart(timeParts, 'minute');\nconst hhmm = hh + ':' + mm;\n\nconst today = getPart(dateParts, 'year') + '-' + getPart(dateParts, 'month') + '-' + getPart(dateParts, 'day');\n\nif (hhmm !== sched.time) return [];\nif (sched.lastFiredAt === today) return [];\n\nsched.lastFiredAt = today;\nreturn [{ json: { trigger: 'schedule', firedAt: today + ' ' + hhmm } }];\n"
+      },
+      "id": "sch00000-sch0-sch0-sch0-sch000000002",
+      "name": "Check schedule",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse a slash command from Handle message and produce either:\n//   { _action: 'generate' }                              \u2014 kick off generator\n//   { _action: 'reply', replyText: '...' }               \u2014 send a single reply\n//\n// For show/set/disable_schedule, also reads/writes staticData.schedule\n// here so the routing only needs two branches downstream.\n\nconst cmd = $json._command;\nconst args = ($json._args || '').trim();\nconst tz = $env.GENERIC_TIMEZONE || 'UTC';\n\nconst helpText = [\n  'Available commands:',\n  '/generate \u2014 create a new post now',\n  '/schedule \u2014 show the current daily schedule',\n  '/schedule HH:MM \u2014 set the daily run time (' + tz + ')',\n  '/schedule off \u2014 disable the daily schedule',\n  '/help \u2014 show this message',\n].join('\\n');\n\nif (cmd === '/generate') {\n  return [{ json: { _action: 'generate' } }];\n}\n\nif (cmd === '/help' || cmd === '/start') {\n  return [{ json: { _action: 'reply', replyText: helpText } }];\n}\n\nif (cmd === '/schedule') {\n  const sd = $getWorkflowStaticData('global');\n  const cur = sd.schedule || {};\n\n  if (!args) {\n    const text = (cur && cur.enabled)\n      ? 'Schedule: daily at ' + cur.time + ' (' + tz + ').\\nLast run: ' + (cur.lastFiredAt || 'never') + '.'\n      : 'Schedule is disabled. Use /schedule HH:MM to enable.';\n    return [{ json: { _action: 'reply', replyText: text } }];\n  }\n\n  if (args.toLowerCase() === 'off') {\n    sd.schedule = { ...cur, enabled: false };\n    return [{ json: { _action: 'reply', replyText: 'Schedule disabled. Use /schedule HH:MM to re-enable.' } }];\n  }\n\n  const m = args.match(/^(\\d{1,2}):(\\d{2})$/);\n  if (m) {\n    const h = +m[1], mm = +m[2];\n    if (h >= 0 && h < 24 && mm >= 0 && mm < 60) {\n      const time = String(h).padStart(2, '0') + ':' + String(mm).padStart(2, '0');\n      sd.schedule = {\n        enabled: true,\n        time,\n        // Preserve lastFiredAt so we do not re-fire today if we already did.\n        lastFiredAt: cur.lastFiredAt || null,\n      };\n      return [{ json: { _action: 'reply', replyText: 'Daily schedule set to ' + time + ' (' + tz + ').' } }];\n    }\n  }\n\n  return [{ json: { _action: 'reply', replyText: 'Bad time format. Use /schedule HH:MM (24h), e.g. /schedule 09:00, or /schedule off.' } }];\n}\n\nreturn [{ json: { _action: 'reply', replyText: 'Unknown command ' + cmd + '.\\n\\n' + helpText } }];\n"
+      },
+      "id": "cmd00000-cmd0-cmd0-cmd0-cmd000000001",
+      "name": "Handle command",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        1200
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json._action }}",
+                    "rightValue": "generate",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "generate"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json._action }}",
+                    "rightValue": "reply",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "reply"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cmd00000-cmd0-cmd0-cmd0-cmd000000002",
+      "name": "Switch on command action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1300,
+        1200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Reject /generate if a review is still pending.\nconst sd = $getWorkflowStaticData('global');\nconst p = sd.pending;\nconst has_pending = !!(p && p.resumeUrl);\nreturn [{ json: { has_pending } }];\n"
+      },
+      "id": "cmd00000-cmd0-cmd0-cmd0-cmd000000003",
+      "name": "Check pending guard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        1100
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.has_pending }}",
+              "rightValue": "={{ true }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "cmd00000-cmd0-cmd0-cmd0-cmd000000004",
+      "name": "IF has pending",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1740,
+        1100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ chat_id: $env.TELEGRAM_CHAT_ID, text: 'A preview is already pending. Approve, regenerate, or finish it first.' }) }}",
+        "options": {}
+      },
+      "id": "cmd00000-cmd0-cmd0-cmd0-cmd000000005",
+      "name": "Reply pending busy",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1960,
+        1000
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ chat_id: $env.TELEGRAM_CHAT_ID, text: '\u23f3 Generating a new post...' }) }}",
+        "options": {}
+      },
+      "id": "cmd00000-cmd0-cmd0-cmd0-cmd000000006",
+      "name": "Send generation started",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1960,
+        1200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ chat_id: $env.TELEGRAM_CHAT_ID, text: $json.replyText }) }}",
+        "options": {}
+      },
+      "id": "cmd00000-cmd0-cmd0-cmd0-cmd000000007",
+      "name": "Send command reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        1300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Single funnel point for the generator chain so 'Read brand voice'\n// only ever has one upstream connection. Three triggers feed into here:\n//   - manual trigger (When clicking Test workflow)\n//   - Schedule trigger -> Check schedule (only when time matches)\n//   - /generate command -> IF has pending [false]\n// We just emit a marker item the rest of the chain ignores.\nreturn [{ json: { _generator_entry: true } }];\n"
+      },
+      "id": "ent00000-ent0-ent0-ent0-ent000000001",
+      "name": "Enter generator",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        400
+      ]
     }
   ],
   "connections": {
@@ -1307,7 +1547,7 @@
       "main": [
         [
           {
-            "node": "Read brand voice",
+            "node": "Enter generator",
             "type": "main",
             "index": 0
           }
@@ -1754,7 +1994,13 @@
             "index": 0
           }
         ],
-        []
+        [
+          {
+            "node": "Handle command",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Get Telegram file": {
@@ -1872,6 +2118,102 @@
         [
           {
             "node": "Send published links",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule trigger": {
+      "main": [
+        [
+          {
+            "node": "Check schedule",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check schedule": {
+      "main": [
+        [
+          {
+            "node": "Enter generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle command": {
+      "main": [
+        [
+          {
+            "node": "Switch on command action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch on command action": {
+      "main": [
+        [
+          {
+            "node": "Check pending guard",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send command reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check pending guard": {
+      "main": [
+        [
+          {
+            "node": "IF has pending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF has pending": {
+      "main": [
+        [
+          {
+            "node": "Reply pending busy",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send generation started",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Enter generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enter generator": {
+      "main": [
+        [
+          {
+            "node": "Read brand voice",
             "type": "main",
             "index": 0
           }

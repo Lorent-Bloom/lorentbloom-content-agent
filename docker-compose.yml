@@ -45,6 +45,10 @@ services:
       SUPABASE_URL: ${SUPABASE_URL}
       SUPABASE_BUCKET: ${SUPABASE_BUCKET}
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      # Groq — same key the n8n credential uses, also exposed to env so
+      # Compose preview's inline IG-rewrite call (Code node, no credential
+      # binding) can read it via $env.GROQ_API_KEY.
+      GROQ_API_KEY: ${GROQ_API_KEY}
     volumes:
       - n8n_data:/home/node/.n8n
       # Brand voice + topic catalog. Read by the workflow at runtime via

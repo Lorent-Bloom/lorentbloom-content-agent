@@ -1346,7 +1346,7 @@
         "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ chat_id: $env.TELEGRAM_CHAT_ID, text: '\u2705 Published\\n\\nFacebook: ' + ($json.permalink_url || ('https://www.facebook.com/' + $('FB Page post').first().json.post_id.replace('_', '/posts/'))) + '\\nInstagram: ' + ((($('Get IG permalink').first().json.data || []).find(m => m.id === $('IG publish').first().json.id) || {}).permalink || 'https://www.instagram.com/'), disable_web_page_preview: false }) }}",
+        "jsonBody": "={{ JSON.stringify({ chat_id: $env.TELEGRAM_CHAT_ID, text: '\u2705 Published\\n\\nFacebook: ' + ($json.permalink_url || ('https://www.facebook.com/photo/?fbid=' + $('FB Page post').first().json.id)) + '\\nInstagram: ' + ((($('Get IG permalink').first().json.data || []).find(m => m.id === $('IG publish').first().json.id) || {}).permalink || 'https://www.instagram.com/'), disable_web_page_preview: false }) }}",
         "options": {}
       },
       "id": "sl111111-sl11-sl11-sl11-sl1111111111",
@@ -1361,7 +1361,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "=https://graph.facebook.com/v21.0/{{ $('FB Page post').first().json.post_id }}",
+        "url": "=https://graph.facebook.com/v21.0/{{ $('FB Page post').first().json.id }}",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "httpHeaderAuth",
         "sendQuery": true,

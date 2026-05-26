@@ -709,6 +709,9 @@
       "name": "IG publish",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
       "position": [
         4940,
         100
@@ -1268,7 +1271,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "=https://graph.facebook.com/v21.0/{{ $json.id }}",
+        "url": "=https://graph.facebook.com/v21.0/{{ $env.IG_BUSINESS_ACCOUNT_ID }}/media",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "httpHeaderAuth",
         "sendQuery": true,
@@ -1276,7 +1279,11 @@
           "parameters": [
             {
               "name": "fields",
-              "value": "permalink"
+              "value": "id,permalink"
+            },
+            {
+              "name": "limit",
+              "value": "5"
             }
           ]
         },
@@ -1286,6 +1293,7 @@
       "name": "Get IG permalink",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
+      "onError": "continueRegularOutput",
       "position": [
         4780,
         100
@@ -1297,7 +1305,7 @@
         "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ chat_id: $env.TELEGRAM_CHAT_ID, text: '\u2705 Published\\n\\nFacebook: https://www.facebook.com/' + $('FB Page post').first().json.post_id + '\\nInstagram: ' + ($json.permalink || 'https://www.instagram.com/'), disable_web_page_preview: false }) }}",
+        "jsonBody": "={{ JSON.stringify({ chat_id: $env.TELEGRAM_CHAT_ID, text: '\u2705 Published\\n\\nFacebook: ' + ($json.permalink_url || ('https://www.facebook.com/' + $('FB Page post').first().json.post_id.replace('_', '/posts/'))) + '\\nInstagram: ' + ((($('Get IG permalink').first().json.data || []).find(m => m.id === $('IG publish').first().json.id) || {}).permalink || 'https://www.instagram.com/'), disable_web_page_preview: false }) }}",
         "options": {}
       },
       "id": "sl111111-sl11-sl11-sl11-sl1111111111",
@@ -1305,7 +1313,34 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        5000,
+        5160,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v21.0/{{ $('FB Page post').first().json.post_id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "permalink_url"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fp111111-fp11-fp11-fp11-fp1111111111",
+      "name": "Get FB permalink",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "onError": "continueRegularOutput",
+      "position": [
+        4940,
         100
       ]
     },
@@ -2160,6 +2195,17 @@
       ]
     },
     "Get IG permalink": {
+      "main": [
+        [
+          {
+            "node": "Get FB permalink",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get FB permalink": {
       "main": [
         [
           {

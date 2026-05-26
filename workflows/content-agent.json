@@ -352,7 +352,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Compose preview \u2014 loop-tolerant. Builds captionText and packages the\n// binary image for the Telegram preview. Handles five upstream sources:\n//   1. Cloudflare image generation (initial / regen_both): item.json.result.image\n//   2. Regen image with hint: item.json.result.image (same shape as #1)\n//   3. Regen text with hint: item.json.choices (no result.image \u2014 reuse prior image)\n//   4. Override text from form: item.json.overrideText (reuse prior image)\n//   5. Wire downloaded as image: item.binary.image is the new upload (reuse prior text)\n\nconst item = $input.first();\nconst inJson = item.json || {};\nconst inBinary = item.binary || {};\n\n// \u2500\u2500\u2500 Text source resolution \u2500\u2500\u2500\nlet text;\nif (inJson.overrideText) {\n  text = inJson.overrideText;\n} else if (inJson.choices && inJson.choices[0]) {\n  text = inJson.choices[0].message.content;\n} else {\n  try {\n    text = $('Merge text branches').first().json.choices[0].message.content;\n  } catch (e) {\n    text = null;\n  }\n  if (!text) {\n    try {\n      text = $('Compose preview').first().json.text;\n    } catch (e) {}\n  }\n}\n\nif (!text) throw new Error('Compose preview: no text source available');\n\n// \u2500\u2500\u2500 Image source resolution \u2500\u2500\u2500\nlet imageBinary;\nlet _imageSource;\nlet _inBinaryKeys = Object.keys(inBinary);\nlet _inJsonShape = {\n  hasResultImage: !!(inJson.result && inJson.result.image),\n  hasChoices: !!(inJson.choices && inJson.choices[0]),\n  hasOverrideText: !!inJson.overrideText,\n  action: inJson.action || null,\n  new_image_url: inJson.new_image_url || null\n};\n\nif (inJson.result && inJson.result.image) {\n  imageBinary = {\n    data: inJson.result.image,\n    mimeType: 'image/png',\n    fileName: 'generated.png'\n  };\n  _imageSource = 'cloudflare_response';\n} else if (inBinary.image) {\n  imageBinary = inBinary.image;\n  _imageSource = 'inline_binary_image_key';\n} else {\n  // Maybe upstream put binary under a non-image key\n  const firstBinKey = _inBinaryKeys[0];\n  if (firstBinKey) {\n    imageBinary = inBinary[firstBinKey];\n    _imageSource = 'inline_binary_first_key:' + firstBinKey;\n  } else {\n    try {\n      const prior = $('Compose preview').first();\n      if (prior.binary && prior.binary.image) {\n        imageBinary = prior.binary.image;\n        _imageSource = 'historic_compose_preview';\n      }\n    } catch (e) {}\n  }\n}\n\nif (!imageBinary) throw new Error('Compose preview: no image source available. inBinaryKeys=' + JSON.stringify(_inBinaryKeys));\n\n// Flag a fresh Cloudflare image so Save pending state can ask the Commit\n// handler to bump dailyCount. Bumping here would race with Commit and\n// overwrite `pending` back to null when this execution flushes its snapshot.\nconst _bumpDailyCount = _imageSource === 'cloudflare_response';\n\n// \u2500\u2500\u2500 Context (perspective, topic, language) \u2500\u2500\u2500\nlet perspective = inJson.perspective;\nlet topic = inJson.selectedTopic;\nlet language = inJson.language;\nif (!perspective || !topic || !language) {\n  const bp = $('Build prompts').first().json;\n  perspective = perspective || bp.perspective;\n  topic = topic || bp.selectedTopic;\n  language = language || bp.language;\n}\n\n// \u2500\u2500\u2500 Hashtag composition (recomputed each iteration for variety) \u2500\u2500\u2500\nconst hashtags = ['#LorentBloom'];\n\nconst brandTag = {\n  ru: '#\u0410\u0440\u0435\u043d\u0434\u0430\u041c\u043e\u043b\u0434\u043e\u0432\u0430',\n  ro: '#\u00cenchirieriMoldova',\n  en: '#RentMoldova'\n}[language];\nhashtags.push(brandTag);\n\nconst perspectiveTags = {\n  renter:  { ru: '#\u0410\u0440\u0435\u043d\u0434\u0443\u0439\u0412\u041c\u043e\u043b\u0434\u043e\u0432\u0435', ro: '#\u00cenchiriaz\u0103\u00cenMoldova', en: '#RentInMoldova' },\n  owner:   { ru: '#\u0421\u0434\u0430\u0439\u0412\u0410\u0440\u0435\u043d\u0434\u0443',     ro: '#D\u0103\u00cenChirie',           en: '#EarnRenting' },\n  service: null\n};\nconst ptag = perspectiveTags[perspective] && perspectiveTags[perspective][language];\nif (ptag) hashtags.push(ptag);\n\nif (language === 'ru') {\n  const topicTags = topic.hashtags || [];\n  const shuffled = [...topicTags].sort(() => Math.random() - 0.5);\n  hashtags.push(...shuffled.slice(0, Math.min(2, shuffled.length)));\n} else {\n  hashtags.push('#Moldova');\n}\n\nconst captionText = text + '\\n\\nhttps://lorentbloom.com\\n\\n' + hashtags.join(' ');\n\nreturn [{\n  json: {\n    perspective,\n    language,\n    selectedTopic: topic,\n    text,\n    captionText,\n    hashtagsUsed: hashtags,\n    _bumpDailyCount,\n    _debug: { imageSource: _imageSource, inBinaryKeys: _inBinaryKeys, inJsonShape: _inJsonShape, imageBinarySize: imageBinary && imageBinary.fileSize }\n  },\n  binary: { image: imageBinary }\n}];"
+        "jsCode": "// Compose preview \u2014 loop-tolerant. Builds captionText and packages the\n// binary image for the Telegram preview. Handles five upstream sources:\n//   1. Cloudflare image generation (initial / regen_both): item.json.result.image\n//   2. Regen image with hint: item.json.result.image (same shape as #1)\n//   3. Regen text with hint: item.json.choices (no result.image \u2014 reuse prior image)\n//   4. Override text from form: item.json.overrideText (reuse prior image)\n//   5. Wire downloaded as image: item.binary.image is the new upload (reuse prior text)\n\nconst item = $input.first();\nconst inJson = item.json || {};\nconst inBinary = item.binary || {};\n\n// \u2500\u2500\u2500 Text source resolution \u2500\u2500\u2500\nlet text;\nif (inJson.overrideText) {\n  text = inJson.overrideText;\n} else if (inJson.choices && inJson.choices[0]) {\n  text = inJson.choices[0].message.content;\n} else {\n  try {\n    text = $('Merge text branches').first().json.choices[0].message.content;\n  } catch (e) {\n    text = null;\n  }\n  if (!text) {\n    try {\n      text = $('Compose preview').first().json.text;\n    } catch (e) {}\n  }\n}\n\nif (!text) throw new Error('Compose preview: no text source available');\n\n// \u2500\u2500\u2500 Image source resolution \u2500\u2500\u2500\nlet imageBinary;\nlet _imageSource;\nlet _inBinaryKeys = Object.keys(inBinary);\nlet _inJsonShape = {\n  hasResultImage: !!(inJson.result && inJson.result.image),\n  hasChoices: !!(inJson.choices && inJson.choices[0]),\n  hasOverrideText: !!inJson.overrideText,\n  action: inJson.action || null,\n  new_image_url: inJson.new_image_url || null\n};\n\nif (inJson.result && inJson.result.image) {\n  // Cloudflare Flux Schnell returns base64. Strip a data-URI prefix if\n  // one ever shows up. `fileExtension` is required by some n8n binary\n  // consumers (e.g. multipart upload to 0x0.st) — without it the upload\n  // can be sent with no recognized extension and rejected.\n  let b64 = inJson.result.image;\n  if (typeof b64 === 'string' && b64.startsWith('data:')) {\n    b64 = b64.split(',')[1];\n  }\n  imageBinary = {\n    data: b64,\n    mimeType: 'image/png',\n    fileName: 'generated.png',\n    fileExtension: 'png'\n  };\n  _imageSource = 'cloudflare_response';\n} else if (inBinary.image) {\n  imageBinary = inBinary.image;\n  _imageSource = 'inline_binary_image_key';\n} else {\n  // Maybe upstream put binary under a non-image key\n  const firstBinKey = _inBinaryKeys[0];\n  if (firstBinKey) {\n    imageBinary = inBinary[firstBinKey];\n    _imageSource = 'inline_binary_first_key:' + firstBinKey;\n  } else {\n    try {\n      const prior = $('Compose preview').first();\n      if (prior.binary && prior.binary.image) {\n        imageBinary = prior.binary.image;\n        _imageSource = 'historic_compose_preview';\n      }\n    } catch (e) {}\n  }\n}\n\nif (!imageBinary) throw new Error('Compose preview: no image source available. inBinaryKeys=' + JSON.stringify(_inBinaryKeys));\n\n// Flag a fresh Cloudflare image so Save pending state can ask the Commit\n// handler to bump dailyCount. Bumping here would race with Commit and\n// overwrite `pending` back to null when this execution flushes its snapshot.\nconst _bumpDailyCount = _imageSource === 'cloudflare_response';\n\n// \u2500\u2500\u2500 Context (perspective, topic, language) \u2500\u2500\u2500\nlet perspective = inJson.perspective;\nlet topic = inJson.selectedTopic;\nlet language = inJson.language;\nif (!perspective || !topic || !language) {\n  const bp = $('Build prompts').first().json;\n  perspective = perspective || bp.perspective;\n  topic = topic || bp.selectedTopic;\n  language = language || bp.language;\n}\n\n// \u2500\u2500\u2500 Hashtag composition (recomputed each iteration for variety) \u2500\u2500\u2500\nconst hashtags = ['#LorentBloom'];\n\nconst brandTag = {\n  ru: '#\u0410\u0440\u0435\u043d\u0434\u0430\u041c\u043e\u043b\u0434\u043e\u0432\u0430',\n  ro: '#\u00cenchirieriMoldova',\n  en: '#RentMoldova'\n}[language];\nhashtags.push(brandTag);\n\nconst perspectiveTags = {\n  renter:  { ru: '#\u0410\u0440\u0435\u043d\u0434\u0443\u0439\u0412\u041c\u043e\u043b\u0434\u043e\u0432\u0435', ro: '#\u00cenchiriaz\u0103\u00cenMoldova', en: '#RentInMoldova' },\n  owner:   { ru: '#\u0421\u0434\u0430\u0439\u0412\u0410\u0440\u0435\u043d\u0434\u0443',     ro: '#D\u0103\u00cenChirie',           en: '#EarnRenting' },\n  service: null\n};\nconst ptag = perspectiveTags[perspective] && perspectiveTags[perspective][language];\nif (ptag) hashtags.push(ptag);\n\nif (language === 'ru') {\n  const topicTags = topic.hashtags || [];\n  const shuffled = [...topicTags].sort(() => Math.random() - 0.5);\n  hashtags.push(...shuffled.slice(0, Math.min(2, shuffled.length)));\n} else {\n  hashtags.push('#Moldova');\n}\n\n// Renter posts can mention items that aren't on the site yet — flag that.\nconst disclaimerVariants = perspective === 'renter' ? {\n  ru: ['*Товар может быть еще недоступен на сайте', '*В данный момент товар может быть недоступен на сайте'],\n  ro: ['*Articolul poate să nu fie încă disponibil pe site', '*În acest moment, articolul poate să nu fie disponibil pe site'],\n  en: ['*This item may not yet be available on the site', '*At the moment, this item may not be available on the site']\n}[language] : null;\nconst disclaimer = disclaimerVariants ? disclaimerVariants[Math.floor(Math.random() * disclaimerVariants.length)] : null;\n\nconst captionText = text + '\\n\\n' + (disclaimer ? disclaimer + '\\n\\n' : '') + 'https://lorentbloom.com\\n\\n' + hashtags.join(' ');\n\nreturn [{\n  json: {\n    perspective,\n    language,\n    selectedTopic: topic,\n    text,\n    captionText,\n    hashtagsUsed: hashtags,\n    _bumpDailyCount,\n    _debug: { imageSource: _imageSource, inBinaryKeys: _inBinaryKeys, inJsonShape: _inJsonShape, imageBinarySize: imageBinary && imageBinary.fileSize }\n  },\n  binary: { image: imageBinary }\n}];"
       },
       "id": "66666666-6666-6666-6666-666666666666",
       "name": "Compose preview",
@@ -437,7 +437,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Parse the webhook body sent by the Telegram action handler chain.\n// Body shape:\n//   { action: 'approve|regen_image|regen_text|regen_both|edit_text|replace_image',\n//     feedback: '' | '...',     // for regen_* if user provided a hint\n//     new_text: '' | '...',     // for edit_text\n//     new_image_url: '' | 'https://...'  // for replace_image (Catbox URL handler uploaded)\n//   }\n//\n// Carries forward the pre-Wait state (caption, binary, topic, language) from\n// the most recent Compose preview execution so every downstream branch has\n// a full item to work with.\n\nconst item = $input.first();\n// Wait node webhook resume puts the body on item.json.body (n8n v1.x) \u2014 fall back to item.json.\nconst body = (item.json && item.json.body) ? item.json.body : (item.json || {});\n\nconst action = body.action || 'invalid';\nconst feedback = body.feedback || '';\nconst new_text = body.new_text || '';\nconst new_image_url = body.new_image_url || '';\n\nconst validActions = ['approve', 'regen_image', 'regen_text', 'regen_both', 'edit_text', 'replace_image'];\nlet normalizedAction = action;\nlet validationError = null;\n\nif (!validActions.includes(action)) {\n  normalizedAction = 'invalid';\n  validationError = `Unknown action received: ${action}`;\n}\n\n// Pre-Wait state from the most recent Compose preview execution.\nconst composePreview = $('Compose preview').first();\n\nconst outputJson = {\n  action: normalizedAction,\n  feedback,\n  new_text,\n  new_image_url,\n  validationError,\n  perspective: composePreview.json.perspective,\n  language: composePreview.json.language,\n  selectedTopic: composePreview.json.selectedTopic,\n  captionText: composePreview.json.captionText,\n  hashtagsUsed: composePreview.json.hashtagsUsed\n};\n\nif (normalizedAction === 'invalid') {\n  outputJson.captionText = '[Invalid action: ' + validationError + ']\\n\\n' + outputJson.captionText;\n}\n\nconst outputBinary = {};\nif (composePreview.binary && composePreview.binary.image) {\n  outputBinary.image = composePreview.binary.image;\n}\n\nreturn [{ json: outputJson, binary: outputBinary }];"
+        "jsCode": "// Parse the webhook body sent by the Telegram action handler chain.\n// Body shape:\n//   { action: 'approve|regen_image|regen_text|regen_both|edit_text|replace_image',\n//     feedback: '' | '...',     // for regen_* if user provided a hint\n//     new_text: '' | '...',     // for edit_text\n//     new_image_url: '' | 'https://...'  // for replace_image (upload handler returned URL)\n//   }\n//\n// Carries forward the pre-Wait state (caption, binary, topic, language) from\n// the most recent Compose preview execution so every downstream branch has\n// a full item to work with.\n\nconst item = $input.first();\n// Wait node webhook resume puts the body on item.json.body (n8n v1.x) \u2014 fall back to item.json.\nconst body = (item.json && item.json.body) ? item.json.body : (item.json || {});\n\nconst action = body.action || 'invalid';\nconst feedback = body.feedback || '';\nconst new_text = body.new_text || '';\nconst new_image_url = body.new_image_url || '';\n\nconst validActions = ['approve', 'regen_image', 'regen_text', 'regen_both', 'edit_text', 'replace_image'];\nlet normalizedAction = action;\nlet validationError = null;\n\nif (!validActions.includes(action)) {\n  normalizedAction = 'invalid';\n  validationError = `Unknown action received: ${action}`;\n}\n\n// Pre-Wait state from the most recent Compose preview execution.\nconst composePreview = $('Compose preview').first();\n\nconst outputJson = {\n  action: normalizedAction,\n  feedback,\n  new_text,\n  new_image_url,\n  validationError,\n  perspective: composePreview.json.perspective,\n  language: composePreview.json.language,\n  selectedTopic: composePreview.json.selectedTopic,\n  captionText: composePreview.json.captionText,\n  hashtagsUsed: composePreview.json.hashtagsUsed\n};\n\nif (normalizedAction === 'invalid') {\n  outputJson.captionText = '[Invalid action: ' + validationError + ']\\n\\n' + outputJson.captionText;\n}\n\nconst outputBinary = {};\nif (composePreview.binary && composePreview.binary.image) {\n  outputBinary.image = composePreview.binary.image;\n}\n\nreturn [{ json: outputJson, binary: outputBinary }];"
       },
       "id": "pa111111-pa11-pa11-pa11-pa1111111111",
       "name": "Parse resume payload",
@@ -622,32 +622,31 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://catbox.moe/user/api.php",
-        "sendBody": true,
-        "contentType": "multipart-form-data",
-        "bodyParameters": {
+        "url": "={{ $env.SUPABASE_URL }}/storage/v1/object/{{ $env.SUPABASE_BUCKET }}/{{ $execution.id }}-generated.png",
+        "sendHeaders": true,
+        "headerParameters": {
           "parameters": [
             {
-              "name": "reqtype",
-              "value": "fileupload"
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
             },
             {
-              "parameterType": "formBinaryData",
-              "name": "fileToUpload",
-              "inputDataFieldName": "image"
+              "name": "Content-Type",
+              "value": "image/png"
+            },
+            {
+              "name": "x-upsert",
+              "value": "true"
             }
           ]
         },
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "text"
-            }
-          }
-        }
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "image",
+        "options": {}
       },
       "id": "cabb1111-cabb-cabb-cabb-cabb11111111",
-      "name": "Upload to Catbox",
+      "name": "Upload image",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
@@ -663,7 +662,7 @@
         "nodeCredentialType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ url: $('Upload to Catbox').first().json.data, caption: $('Compose preview').first().json.captionText }) }}",
+        "jsonBody": "={{ JSON.stringify({ url: $env.SUPABASE_URL + '/storage/v1/object/public/' + $env.SUPABASE_BUCKET + '/' + $execution.id + '-generated.png', caption: $('Compose preview').first().json.captionText }) }}",
         "options": {}
       },
       "id": "fbfbfbfb-fbfb-fbfb-fbfb-fbfbfbfbfbfb",
@@ -683,7 +682,7 @@
         "nodeCredentialType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ image_url: $('Upload to Catbox').first().json.data, caption: $('Compose preview').first().json.captionText }) }}",
+        "jsonBody": "={{ JSON.stringify({ image_url: $env.SUPABASE_URL + '/storage/v1/object/public/' + $env.SUPABASE_BUCKET + '/' + $execution.id + '-generated.png', caption: $('Compose preview').first().json.captionText }) }}",
         "options": {}
       },
       "id": "ig111111-ig11-ig11-ig11-ig1111111111",
@@ -1019,7 +1018,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Handle a message update (text reply, photo, or slash command).\n//\n// Priority:\n//   1) Slash commands (text starting with '/', except the in-hint '/skip')\n//      route to the command branch regardless of pending state.\n//   2) If a pending review is waiting for input, route to the matching\n//      resume branch and clear waitingFor.\n//   3) Otherwise ignore.\n//\n// waitingFor values handled below:\n//   'edit_text'           \u2014 expect text \u2192 resume with {action:'edit_text', new_text}\n//   'hint_for_regen_*'    \u2014 expect text \u2192 resume with {action:'regen_*', feedback}\n//                            (text '/skip' \u2192 feedback='')\n//   'replace_image'       \u2014 expect photo \u2192 fetch file \u2192 upload to Catbox \u2192 resume\n//                            with {action:'replace_image', new_image_url}\n\nconst msg = $input.first().json.message;\nconst text = msg && msg.text;\nconst photo = msg && msg.photo;\nconst chatId = msg && msg.chat && msg.chat.id;\n\nconst data = $getWorkflowStaticData('global');\nconst pending = data.pending;\n\n// 1) Slash command detection \u2014 wins over any pending hint flow.\n//    '/skip' is reserved for the regen hint flow and not treated as a command.\nif (typeof text === 'string' && text.trim().startsWith('/') && text.trim() !== '/skip') {\n  const parts = text.trim().split(/\\s+/);\n  return [{\n    json: {\n      _nextStep: 'command',\n      _command: parts[0].toLowerCase().split('@')[0],\n      _args: parts.slice(1).join(' '),\n      chatId,\n    }\n  }];\n}\n\nif (!pending || !pending.waitingFor) {\n  return [{ json: { _nextStep: 'ignore', reason: 'No pending review waiting for input.' } }];\n}\nif (pending.chatId !== chatId) {\n  return [{ json: { _nextStep: 'ignore', reason: 'Message from a different chat.' } }];\n}\n\nconst waitingFor = pending.waitingFor;\n\nif (waitingFor === 'edit_text') {\n  if (!text) return [{ json: { _nextStep: 'ignore', reason: 'edit_text expected a text reply.' } }];\n  data.pending = null;\n  return [{\n    json: {\n      _nextStep: 'resume_text',\n      resumeUrl: pending.resumeUrl,\n      resumeBody: { action: 'edit_text', new_text: text }\n    }\n  }];\n}\n\nif (waitingFor.startsWith('hint_for_')) {\n  if (!text) return [{ json: { _nextStep: 'ignore', reason: 'Hint expected a text reply.' } }];\n  const action = waitingFor.replace('hint_for_', '');\n  const feedback = text.trim() === '/skip' ? '' : text;\n  data.pending = null;\n  return [{\n    json: {\n      _nextStep: 'resume_text',\n      resumeUrl: pending.resumeUrl,\n      resumeBody: { action, feedback }\n    }\n  }];\n}\n\nif (waitingFor === 'replace_image') {\n  if (!photo || photo.length === 0) {\n    return [{ json: { _nextStep: 'ignore', reason: 'replace_image expected a photo.' } }];\n  }\n  const file_id = photo[photo.length - 1].file_id; // largest size\n  data.pending = null;\n  return [{\n    json: {\n      _nextStep: 'resume_image',\n      resumeUrl: pending.resumeUrl,\n      file_id\n    }\n  }];\n}\n\nreturn [{ json: { _nextStep: 'ignore', reason: 'Unknown waitingFor: ' + waitingFor } }];\n"
+        "jsCode": "// Handle a message update (text reply, photo, or slash command).\n//\n// Priority:\n//   1) Slash commands (text starting with '/', except the in-hint '/skip')\n//      route to the command branch regardless of pending state.\n//   2) If a pending review is waiting for input, route to the matching\n//      resume branch and clear waitingFor.\n//   3) Otherwise ignore.\n//\n// waitingFor values handled below:\n//   'edit_text'           \u2014 expect text \u2192 resume with {action:'edit_text', new_text}\n//   'hint_for_regen_*'    \u2014 expect text \u2192 resume with {action:'regen_*', feedback}\n//                            (text '/skip' \u2192 feedback='')\n//   'replace_image'       \u2014 expect photo \u2192 fetch file \u2192 upload to host \u2192 resume\n//                            with {action:'replace_image', new_image_url}\n\nconst msg = $input.first().json.message;\nconst text = msg && msg.text;\nconst photo = msg && msg.photo;\nconst chatId = msg && msg.chat && msg.chat.id;\n\nconst data = $getWorkflowStaticData('global');\nconst pending = data.pending;\n\n// 1) Slash command detection \u2014 wins over any pending hint flow.\n//    '/skip' is reserved for the regen hint flow and not treated as a command.\nif (typeof text === 'string' && text.trim().startsWith('/') && text.trim() !== '/skip') {\n  const parts = text.trim().split(/\\s+/);\n  return [{\n    json: {\n      _nextStep: 'command',\n      _command: parts[0].toLowerCase().split('@')[0],\n      _args: parts.slice(1).join(' '),\n      chatId,\n    }\n  }];\n}\n\nif (!pending || !pending.waitingFor) {\n  return [{ json: { _nextStep: 'ignore', reason: 'No pending review waiting for input.' } }];\n}\nif (pending.chatId !== chatId) {\n  return [{ json: { _nextStep: 'ignore', reason: 'Message from a different chat.' } }];\n}\n\nconst waitingFor = pending.waitingFor;\n\nif (waitingFor === 'edit_text') {\n  if (!text) return [{ json: { _nextStep: 'ignore', reason: 'edit_text expected a text reply.' } }];\n  data.pending = null;\n  return [{\n    json: {\n      _nextStep: 'resume_text',\n      resumeUrl: pending.resumeUrl,\n      resumeBody: { action: 'edit_text', new_text: text }\n    }\n  }];\n}\n\nif (waitingFor.startsWith('hint_for_')) {\n  if (!text) return [{ json: { _nextStep: 'ignore', reason: 'Hint expected a text reply.' } }];\n  const action = waitingFor.replace('hint_for_', '');\n  const feedback = text.trim() === '/skip' ? '' : text;\n  data.pending = null;\n  return [{\n    json: {\n      _nextStep: 'resume_text',\n      resumeUrl: pending.resumeUrl,\n      resumeBody: { action, feedback }\n    }\n  }];\n}\n\nif (waitingFor === 'replace_image') {\n  if (!photo || photo.length === 0) {\n    return [{ json: { _nextStep: 'ignore', reason: 'replace_image expected a photo.' } }];\n  }\n  const file_id = photo[photo.length - 1].file_id; // largest size\n  data.pending = null;\n  return [{\n    json: {\n      _nextStep: 'resume_image',\n      resumeUrl: pending.resumeUrl,\n      file_id\n    }\n  }];\n}\n\nreturn [{ json: { _nextStep: 'ignore', reason: 'Unknown waitingFor: ' + waitingFor } }];\n"
       },
       "id": "hm111111-hm11-hm11-hm11-hm1111111111",
       "name": "Handle message",
@@ -1171,32 +1170,31 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://catbox.moe/user/api.php",
-        "sendBody": true,
-        "contentType": "multipart-form-data",
-        "bodyParameters": {
+        "url": "={{ $env.SUPABASE_URL }}/storage/v1/object/{{ $env.SUPABASE_BUCKET }}/{{ $execution.id }}-replace.jpg",
+        "sendHeaders": true,
+        "headerParameters": {
           "parameters": [
             {
-              "name": "reqtype",
-              "value": "fileupload"
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
             },
             {
-              "parameterType": "formBinaryData",
-              "name": "fileToUpload",
-              "inputDataFieldName": "data"
+              "name": "Content-Type",
+              "value": "image/jpeg"
+            },
+            {
+              "name": "x-upsert",
+              "value": "true"
             }
           ]
         },
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "text"
-            }
-          }
-        }
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
       },
       "id": "cu111111-cu11-cu11-cu11-cu1111111111",
-      "name": "Upload photo to Catbox",
+      "name": "Upload user photo",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
@@ -1210,7 +1208,7 @@
         "url": "={{ $('Handle message').first().json.resumeUrl }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ action: 'replace_image', new_image_url: $json.data }) }}",
+        "jsonBody": "={{ JSON.stringify({ action: 'replace_image', new_image_url: $env.SUPABASE_URL + '/storage/v1/object/public/' + $env.SUPABASE_BUCKET + '/' + $execution.id + '-replace.jpg' }) }}",
         "options": {}
       },
       "id": "ri111111-ri11-ri11-ri11-ri1111111111",
@@ -1830,7 +1828,7 @@
             "index": 0
           },
           {
-            "node": "Upload to Catbox",
+            "node": "Upload image",
             "type": "main",
             "index": 0
           }
@@ -1879,7 +1877,7 @@
         ]
       ]
     },
-    "Upload to Catbox": {
+    "Upload image": {
       "main": [
         [
           {
@@ -2055,14 +2053,14 @@
       "main": [
         [
           {
-            "node": "Upload photo to Catbox",
+            "node": "Upload user photo",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Upload photo to Catbox": {
+    "Upload user photo": {
       "main": [
         [
           {

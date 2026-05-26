@@ -40,6 +40,11 @@ services:
       CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID}
       FB_PAGE_ID: ${FB_PAGE_ID}
       IG_BUSINESS_ACCOUNT_ID: ${IG_BUSINESS_ACCOUNT_ID}
+      # Supabase Storage — hosts post images at a public HTTPS URL so Meta
+      # (FB/IG) can fetch them. IG only accepts image_url, not binary upload.
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_BUCKET: ${SUPABASE_BUCKET}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
     volumes:
       - n8n_data:/home/node/.n8n
       # Brand voice + topic catalog. Read by the workflow at runtime via

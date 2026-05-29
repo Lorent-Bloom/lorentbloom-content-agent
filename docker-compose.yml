@@ -49,6 +49,14 @@ services:
       # Compose preview's inline IG-rewrite call (Code node, no credential
       # binding) can read it via $env.GROQ_API_KEY.
       GROQ_API_KEY: ${GROQ_API_KEY}
+      # Cloudflare Workers AI token — image generation nodes auth from env
+      # instead of an n8n credential, so re-imports need no credential picking.
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
+      # Long-lived FB User token (seed). The "Get FB page token" node derives a
+      # fresh Page token from it on every publish, so the Page token never
+      # goes stale. Generate once (Graph Explorer → long-lived exchange);
+      # active posting keeps its 90-day data-access window alive.
+      FB_USER_TOKEN: ${FB_USER_TOKEN}
     volumes:
       - n8n_data:/home/node/.n8n
       # Brand voice + topic catalog. Read by the workflow at runtime via

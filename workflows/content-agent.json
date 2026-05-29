@@ -70,7 +70,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Day-of-week language rotation with weekly random shuffle.\n// Same week \u2192 same Mon-Sun pattern; new week \u2192 fresh pattern.\n// Weekly distribution: 3 ru + 2 ro + 2 en (43% / 29% / 29%).\n// Seed: ISO year \u00d7 100 + ISO week number, so the rotation is deterministic\n// per week but unpredictable across weeks.\n\nconst now = new Date();\n\nfunction getISOWeek(d) {\n  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));\n  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));\n  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));\n  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);\n}\n\nconst weekNum = getISOWeek(now);\nconst year = now.getUTCFullYear();\nconst seed = year * 100 + weekNum;\n\n// Seeded PRNG (mulberry32) \u2014 deterministic for a given seed.\nfunction mulberry32(s) {\n  return function () {\n    let t = s += 0x6D2B79F5;\n    t = Math.imul(t ^ t >>> 15, t | 1);\n    t ^= t + Math.imul(t ^ t >>> 7, t | 61);\n    return ((t ^ t >>> 14) >>> 0) / 4294967296;\n  };\n}\n\nconst rng = mulberry32(seed);\n\n// Weekly slot pool: 3 ru + 2 ro + 2 en = 7 days.\nconst pool = ['ru', 'ru', 'ru', 'ro', 'ro', 'en', 'en'];\n\n// Fisher-Yates shuffle with seeded RNG \u2192 same week always shuffles the same way.\nfor (let i = pool.length - 1; i > 0; i--) {\n  const j = Math.floor(rng() * (i + 1));\n  [pool[i], pool[j]] = [pool[j], pool[i]];\n}\n\n// Map JS day (0=Sun..6=Sat) to ISO day-of-week (0=Mon..6=Sun).\nconst jsDay = now.getDay();\nconst dayIndex = (jsDay + 6) % 7;\nconst language = pool[dayIndex];\n\nreturn [{\n  json: {\n    language,\n    _rotation: { weekNum, year, dayIndex, weeklyPlan: pool }\n  }\n}];"
+        "jsCode": "// Day-of-week language rotation with weekly random shuffle.\n// Same week \u2192 same Mon-Sun pattern; new week \u2192 fresh pattern.\n// Weekly distribution: 4 ru + 3 ro (57% / 43%). English retired.\n// Seed: ISO year \u00d7 100 + ISO week number, so the rotation is deterministic\n// per week but unpredictable across weeks.\n\nconst now = new Date();\n\nfunction getISOWeek(d) {\n  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));\n  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));\n  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));\n  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);\n}\n\nconst weekNum = getISOWeek(now);\nconst year = now.getUTCFullYear();\nconst seed = year * 100 + weekNum;\n\n// Seeded PRNG (mulberry32) \u2014 deterministic for a given seed.\nfunction mulberry32(s) {\n  return function () {\n    let t = s += 0x6D2B79F5;\n    t = Math.imul(t ^ t >>> 15, t | 1);\n    t ^= t + Math.imul(t ^ t >>> 7, t | 61);\n    return ((t ^ t >>> 14) >>> 0) / 4294967296;\n  };\n}\n\nconst rng = mulberry32(seed);\n\n// Weekly slot pool: 4 ru + 3 ro = 7 days.\nconst pool = ['ru', 'ru', 'ru', 'ru', 'ro', 'ro', 'ro'];\n\n// Fisher-Yates shuffle with seeded RNG \u2192 same week always shuffles the same way.\nfor (let i = pool.length - 1; i > 0; i--) {\n  const j = Math.floor(rng() * (i + 1));\n  [pool[i], pool[j]] = [pool[j], pool[i]];\n}\n\n// Map JS day (0=Sun..6=Sat) to ISO day-of-week (0=Mon..6=Sun).\nconst jsDay = now.getDay();\nconst dayIndex = (jsDay + 6) % 7;\nconst language = pool[dayIndex];\n\nreturn [{\n  json: {\n    language,\n    _rotation: { weekNum, year, dayIndex, weeklyPlan: pool }\n  }\n}];"
       },
       "id": "abcdef00-aaaa-bbbb-cccc-000000000001",
       "name": "Pick language",
@@ -233,8 +233,15 @@
       "parameters": {
         "method": "POST",
         "url": "https://api.groq.com/openai/v1/chat/completions",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GROQ_API_KEY }}"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json.requestBody) }}",
@@ -297,8 +304,15 @@
       "parameters": {
         "method": "POST",
         "url": "https://api.groq.com/openai/v1/chat/completions",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GROQ_API_KEY }}"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json._validate.regenRequestBody) }}",
@@ -331,8 +345,15 @@
       "parameters": {
         "method": "POST",
         "url": "=https://api.cloudflare.com/client/v4/accounts/{{ $env.CLOUDFLARE_ACCOUNT_ID }}/ai/run/@cf/black-forest-labs/flux-1-schnell",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.CLOUDFLARE_API_TOKEN }}"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ prompt: $('Build prompts').item.json.selectedTopic.imagePrompt, steps: 4 }) }}",
@@ -697,10 +718,50 @@
     },
     {
       "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v21.0/{{ $env.FB_PAGE_ID }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.FB_USER_TOKEN }}"
+            }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "access_token"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fpt11111-fpt1-fpt1-fpt1-fpt111111111",
+      "name": "Get FB page token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4500,
+        -100
+      ]
+    },
+    {
+      "parameters": {
         "method": "POST",
         "url": "=https://graph.facebook.com/v21.0/{{ $env.FB_PAGE_ID }}/photos",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Get FB page token').first().json.access_token }}"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ url: $env.SUPABASE_URL + '/storage/v1/object/public/' + $env.SUPABASE_BUCKET + '/' + $execution.id + '-generated.png', caption: $('Compose preview').first().json.fbCaption }) }}",
@@ -719,8 +780,15 @@
       "parameters": {
         "method": "POST",
         "url": "=https://graph.facebook.com/v21.0/{{ $env.IG_BUSINESS_ACCOUNT_ID }}/media",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Get FB page token').first().json.access_token }}"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ image_url: $env.SUPABASE_URL + '/storage/v1/object/public/' + $env.SUPABASE_BUCKET + '/' + $execution.id + '-generated.png', caption: $('Compose preview').first().json.igCaption }) }}",
@@ -739,8 +807,15 @@
       "parameters": {
         "method": "POST",
         "url": "=https://graph.facebook.com/v21.0/{{ $env.IG_BUSINESS_ACCOUNT_ID }}/media_publish",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Get FB page token').first().json.access_token }}"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ creation_id: $json.id }) }}",
@@ -762,8 +837,15 @@
       "parameters": {
         "method": "POST",
         "url": "=https://api.cloudflare.com/client/v4/accounts/{{ $env.CLOUDFLARE_ACCOUNT_ID }}/ai/run/@cf/black-forest-labs/flux-1-schnell",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.CLOUDFLARE_API_TOKEN }}"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ prompt: $json.selectedTopic.imagePrompt + ($json.feedback ? '. Style hint: ' + $json.feedback : ''), steps: 4 }) }}",
@@ -785,8 +867,15 @@
       "parameters": {
         "method": "POST",
         "url": "https://api.groq.com/openai/v1/chat/completions",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GROQ_API_KEY }}"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: 'llama-3.3-70b-versatile', temperature: 1.0, messages: [...$('Build prompts').first().json.requestBody.messages, { role: 'assistant', content: $('Compose preview').first().json.text }, { role: 'user', content: 'Rewrite the post entirely. ' + ($json.feedback ? 'Reviewer hint: ' + $json.feedback + '. ' : '') + 'Keep language=' + $json.language + ', perspective=' + $json.perspective + '. Output ONLY the post \u2014 no commentary.' }] }) }}",
@@ -1043,18 +1132,17 @@
     },
     {
       "parameters": {
-        "resource": "message",
-        "operation": "sendMessage",
-        "chatId": "={{ $json.chatId }}",
-        "text": "={{ $json.askText }}",
-        "additionalFields": {
-          "appendAttribution": false
-        }
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ chat_id: $json.chatId, text: $json.askText }) }}",
+        "options": {}
       },
       "id": "sm111111-sm11-sm11-sm11-sm1111111111",
       "name": "Send ask prompt",
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         1080,
         1050
@@ -1198,16 +1286,47 @@
     },
     {
       "parameters": {
-        "resource": "file",
-        "operation": "get",
-        "fileId": "={{ $json.file_id }}"
+        "method": "GET",
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/getFile",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "file_id",
+              "value": "={{ $json.file_id }}"
+            }
+          ]
+        },
+        "options": {}
       },
       "id": "gf111111-gf11-gf11-gf11-gf1111111111",
-      "name": "Get Telegram file",
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
+      "name": "Get Telegram file path",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         1080,
+        1250
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.telegram.org/file/bot{{ $env.TELEGRAM_BOT_TOKEN }}/{{ $json.result.file_path }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "id": "dtf11111-dtf1-dtf1-dtf1-dtf111111111",
+      "name": "Download Telegram file",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1190,
         1250
       ]
     },
@@ -1313,8 +1432,15 @@
       "parameters": {
         "method": "GET",
         "url": "=https://graph.facebook.com/v21.0/{{ $env.IG_BUSINESS_ACCOUNT_ID }}/media",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Get FB page token').first().json.access_token }}"
+            }
+          ]
+        },
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
@@ -1362,8 +1488,15 @@
       "parameters": {
         "method": "GET",
         "url": "=https://graph.facebook.com/v21.0/{{ $('FB Page post').first().json.id }}",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Get FB page token').first().json.access_token }}"
+            }
+          ]
+        },
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
@@ -1975,6 +2108,17 @@
       "main": [
         [
           {
+            "node": "Get FB page token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get FB page token": {
+      "main": [
+        [
+          {
             "node": "FB Page post",
             "type": "main",
             "index": 0
@@ -2129,7 +2273,7 @@
         ],
         [
           {
-            "node": "Get Telegram file",
+            "node": "Get Telegram file path",
             "type": "main",
             "index": 0
           }
@@ -2143,7 +2287,18 @@
         ]
       ]
     },
-    "Get Telegram file": {
+    "Get Telegram file path": {
+      "main": [
+        [
+          {
+            "node": "Download Telegram file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Telegram file": {
       "main": [
         [
           {
